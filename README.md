@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # safego
 
 A new Flutter project.
@@ -17,4 +16,3 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 =======
 # SafeGo
->>>>>>> 4e34b494855a602846b6d52c157390c820f9b84c
