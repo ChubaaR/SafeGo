@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // =======================================================================
+    // SUPER PERMISSIVE RULES FOR TESTING FCM TOKEN-BASED NOTIFICATIONS
+    // WARNING: These rules allow ANY authenticated user to read/write most data
+    // Use ONLY for testing and debugging - NOT for production!
+    // =======================================================================
+
+    // Allow all authenticated users to read/write journey notifications
+    match /journey_notifications/{notificationId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Allow all authenticated users to read/write emergency notifications
+    match /emergency_notifications/{notificationId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Allow all authenticated users to read/write test notifications
+    match /test_notifications/{notificationId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Allow all authenticated users to read/write FCM connections
+    match /fcm_connections/{connectionId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Allow all authenticated users to read/write FCM tokens
+    match /fcm_tokens/{tokenId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Users collection - more permissive for testing
+    match /users/{userId} {
+      match /connected_fcm_devices/{deviceId} {
+        allow read, write: if request.auth != null;
+      }
+
+      match /fcm_tokens/{tokenId} {
+        allow read, write: if request.auth != null;
+      }
+
+      match /emergency_contacts/{contactId} {
+        allow read, write: if request.auth != null;
+        
+        match /live_location/{locationDoc} {
+          allow read, write: if request.auth != null;
+        }
+        
+        match /notifications/{notifId} {
+          allow read, write: if request.auth != null;
+        }
+      }
+
+      match /saved_locations/{locationId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /live_location/{locationDoc} {
+        allow read, write: if request.auth != null;
+      }
+
+      // Fallback for user documents - keep restricted to owner
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Emergency contacts collection
+    match /emergency_contacts/{contactId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Check-in notifications collection  
+    match /checkin_notifications/{notificationId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Test tokens collection
+    match /test_tokens/{tokenId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Top-level notifications collection
+    match /notifications/{notificationId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Catch-all for any other collections during testing
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

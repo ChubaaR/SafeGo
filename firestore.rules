@@ -1,0 +1,193 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===================================================================
+    // IMPORTANT — DEMO ONLY: relaxed rules below permit clients to create
+    // notification documents. This is insecure for production because any
+    // authenticated user can create notifications for any recipient. Keep
+    // these rules only in a local/dev/demo environment.
+    // ===================================================================
+
+    // Top-level notifications collection
+    match /notifications/{notificationId} {
+      // Allow any authenticated client to create notifications (DEV ONLY).
+      // Production: keep writes false and use a Cloud Function/Admin SDK.
+      allow create: if request.auth != null;
+
+      // Allow reads only to the intended recipient (owner) or deny otherwise.
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+
+      // Prevent client-side updates/deletes in dev rules (optional)
+      allow update, delete: if false;
+    }
+
+    // Users collection and subcollections
+    match /users/{userId} {
+      // Allow creating a notification document under any user's notifications
+      // subcollection from an authenticated client (DEV ONLY).
+      match /notifications/{notifId} {
+        allow create: if request.auth != null;
+        // Reads are allowed only for the owner of this user document
+        allow read: if request.auth != null && request.auth.uid == userId;
+        // Updates/deletes limited to the owner
+        allow update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // FCM tokens collection - allow emergency contacts to read for SOS notifications
+      match /fcm_tokens/{tokenId} {
+        // Owner can read/write their own FCM tokens
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        // Allow other authenticated users to read FCM tokens for emergency notifications
+        // This enables emergency contacts to send FCM notifications
+        allow read: if request.auth != null;
+      }
+
+      // Connected FCM devices collection for manual device pairing
+      match /connected_fcm_devices/{deviceId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Users can only read and write their own data for all other subcollections
+      match /emergency_contacts/{contactId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        
+        // Allow live location access for emergency purposes
+        match /live_location/{locationDoc} {
+          // Allow any authenticated user to read live location (emergency access)
+          // This is simplified for emergency scenarios
+          allow read: if request.auth != null;
+          // Only the owner can write live location data
+          allow write: if request.auth != null && request.auth.uid == userId;
+        }
+        
+        // Allow emergency contacts to read notifications sent to them
+        match /notifications/{notifId} {
+          allow read: if request.auth != null && (
+            // Owner can read their own notifications
+            request.auth.uid == userId ||
+            // Emergency contact can read notifications meant for them
+            request.auth.uid == resource.data.contactUid
+          );
+          allow write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      match /saved_locations/{locationId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Live location data - accessible to emergency contacts with permission
+      match /live_location/{locationDoc} {
+        // Owner can always read/write their own live location
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        
+        // Emergency contacts can read live location if they exist in the user's emergency contacts
+        // and have the allowShareLiveLocation permission enabled
+        allow read: if request.auth != null && 
+          exists(/databases/$(database)/documents/users/$(userId)/emergency_contacts/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(userId)/emergency_contacts/$(request.auth.uid)).data.allowShareLiveLocation == true;
+      }
+
+      // Fallback: user document itself and any other subcollections are owned
+      // and may be read/written only by the authenticated owner.
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Journey notifications collection (FCM token-based cross-device communication)
+    match /journey_notifications/{notificationId} {
+      // Allow creating journey notifications from authenticated users
+      allow create: if request.auth != null;
+      
+      // Allow any authenticated user to read journey notifications
+      // (Device B needs to query by targetToken to find its notifications)
+      allow read: if request.auth != null;
+      
+      // Allow updating to mark as read by any authenticated user
+      allow update: if request.auth != null &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'processed']);
+      
+      // Prevent deletion
+      allow delete: if false;
+    }
+
+    // Emergency contacts collection (for cross-referencing)
+    match /emergency_contacts/{contactId} {
+      // Allow reading emergency contact relationships for notification purposes
+      allow read: if request.auth != null;
+      // Allow creating/updating emergency contact relationships
+      allow create, update: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      // Allow deleting only by the user who created the relationship
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+
+    // Emergency notifications collection
+    match /emergency_notifications/{notificationId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.fromUserId || 
+         request.auth.uid == resource.data.toUserId);
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.toUserId;
+      allow delete: if false;
+    }
+
+    // Check-in notifications collection  
+    match /checkin_notifications/{notificationId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.fromUserId || 
+         request.auth.uid == resource.data.toUserId);
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.toUserId;
+      allow delete: if false;
+    }
+
+    // Test notifications collection (for FCM testing)
+    match /test_notifications/{notificationId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.fromUserId;
+      allow update, delete: if request.auth != null && 
+        request.auth.uid == resource.data.fromUserId;
+    }
+
+    // Test tokens collection (for FCM testing)
+    match /test_tokens/{tokenId} {
+      allow create, update: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+
+    // Global FCM tokens collection for cross-user SOS alerts
+    match /fcm_tokens/{tokenId} {
+      // Any authenticated user can read FCM tokens (for SOS alerts)
+      allow read: if request.auth != null;
+      // Users can create/update/delete their own tokens
+      allow create, update: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+
+    // FCM connections collection for device pairing
+    match /fcm_connections/{connectionId} {
+      // Any authenticated user can create connections
+      allow create: if request.auth != null;
+      // Users can read connections involving their devices
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.userIdA || request.auth.uid == resource.data.userIdB);
+      // Users can update/delete their own connections
+      allow update, delete: if request.auth != null && 
+        request.auth.uid == resource.data.userIdA;
+    }
+
+    // Add other project-level rules as needed
+  }
+}

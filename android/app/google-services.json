@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "256303549295",
+    "project_id": "safego-d2dbf",
+    "storage_bucket": "safego-d2dbf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:256303549295:android:2b956e06660dae868d369a",
+        "android_client_info": {
+          "package_name": "com.example.safego"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "256303549295-lnsbnfjn7fqc2r8n8d9d2lsvklvo97j3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDswFU4hbZ1NrrnNLMRCClPxaYpiKax8as"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "256303549295-lnsbnfjn7fqc2r8n8d9d2lsvklvo97j3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
