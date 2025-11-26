@@ -140,6 +140,7 @@ class JourneyState extends State<Journey> {
   
   // Arrival verification state
   bool _isVerifyingArrival = false;
+  bool _allowManualCompletion = true; // Allow user to manually end journey
 
   @override
   void initState() {
@@ -570,10 +571,10 @@ class JourneyState extends State<Journey> {
       
       
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Journey started! Live location sharing active with emergency contacts. Stay safe!'),
+        SnackBar(
+          content: Text('Journey started! Check-ins every $_checkInIntervalMinutes minutes until you arrive. Live location sharing active. Stay safe!'),
           backgroundColor: Colors.green,
-          duration: Duration(seconds: 4),
+          duration: Duration(seconds: 5),
         ),
       );
       
@@ -590,46 +591,40 @@ class JourneyState extends State<Journey> {
     _totalJourneyMinutes = int.tryParse(durationText) ?? 10;
     
     // Set check-in interval based on journey duration
-    // If total journey < 10 minutes -> 5 minute intervals
-    // If total journey >= 10 minutes -> 10 minute intervals
+    // If total journey < 10 minutes -> 1 minute intervals for testing
+    // If total journey >= 10 minutes -> 2 minute intervals for testing
     if (_totalJourneyMinutes < 10) {
-      _checkInIntervalMinutes = 1; // 5 minute intervals for short journeys (but 1 minute for testing)
+      _checkInIntervalMinutes = 1; // 1 minute intervals for short journeys
     } else {
-      _checkInIntervalMinutes = 2; // 10 minute intervals for longer journeys (but 2 minutes for testing)
+      _checkInIntervalMinutes = 2; // 2 minute intervals for longer journeys
     }
     
-    debugPrint('Check-in timer setup: ${_totalJourneyMinutes}min journey, ${_checkInIntervalMinutes}min intervals');
+    debugPrint('Check-in timer setup: ${_totalJourneyMinutes}min journey, ${_checkInIntervalMinutes}min intervals (continuous until manual completion)');
     
-    // If journey is longer than check-in interval, set up periodic check-ins
-    if (_totalJourneyMinutes > _checkInIntervalMinutes) {
-      _scheduleNextCheckIn();
-    }
+    // Always start check-ins regardless of journey duration
+    _scheduleNextCheckIn();
+    
+    // Schedule a notification after estimated journey time to remind user about continuous check-ins
+    Timer(Duration(minutes: _totalJourneyMinutes), () {
+      if (_journeyStarted && mounted) {
+        _completeJourney(); // This now just shows a message, doesn't stop journey
+      }
+    });
   }
   
   void _scheduleNextCheckIn() {
     // Cancel any existing timer
     _checkInTimer?.cancel();
     
-    // Check if journey is still active and we haven't exceeded the total time
-    final elapsedMinutes = DateTime.now().difference(_journeyStartTime!).inMinutes;
-    
-    if (!_journeyStarted || elapsedMinutes >= _totalJourneyMinutes) {
-      debugPrint('Journey completed or stopped - not scheduling next check-in');
+    // Check if journey is still active (no time limit check - continue until user ends journey)
+    if (!_journeyStarted) {
+      debugPrint('Journey stopped - not scheduling next check-in');
       return;
     }
     
     // Calculate when the next check-in should occur
     final nextCheckInTime = DateTime.now().add(Duration(minutes: _checkInIntervalMinutes));
     final nextCheckInNumber = _checkInCount + 1;
-    
-    // Don't schedule if the next check-in would be beyond the journey end time
-    final nextCheckInElapsed = nextCheckInTime.difference(_journeyStartTime!).inMinutes;
-    
-    if (nextCheckInElapsed > _totalJourneyMinutes) {
-      debugPrint('Next check-in would exceed journey duration - completing journey');
-      _completeJourney();
-      return;
-    }
     
     // Generate unique notification ID
     final notificationId = NotificationService.generateNotificationId(_journeyStartTime!, nextCheckInNumber);
@@ -691,16 +686,8 @@ class JourneyState extends State<Journey> {
       
       debugPrint('Check-in #$_checkInCount completed successfully (including SOS cancellations)');
       
-      // Check-in successful, schedule next check-in if journey continues
-      final elapsedMinutes = DateTime.now().difference(_journeyStartTime!).inMinutes;
-      
-      // Schedule next check-in if there's still time remaining in the journey
-      if (elapsedMinutes < _totalJourneyMinutes) {
-        _scheduleNextCheckIn();
-      } else {
-        // Journey is complete, no more check-ins needed
-        _completeJourney();
-      }
+      // Always schedule next check-in - continue until user manually ends journey
+      _scheduleNextCheckIn();
     } else {
       // Check-in failed - but still continue journey with reduced check-in frequency
       debugPrint('Check-in #$_checkInCount failed, but journey continues');
@@ -715,18 +702,31 @@ class JourneyState extends State<Journey> {
       );
       
       // Continue scheduling check-ins even after failure to maintain safety monitoring
-      final elapsedMinutes = DateTime.now().difference(_journeyStartTime!).inMinutes;
-      if (elapsedMinutes < _totalJourneyMinutes) {
-        _scheduleNextCheckIn();
-      } else {
-        _completeJourney();
-      }
+      _scheduleNextCheckIn();
     }
   }
   
   void _completeJourney() {
+    // This method is now only called when user manually completes journey
+    // Show a message that estimated time has passed but check-ins continue
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Estimated journey time reached ($_checkInCount check-ins). Check-ins will continue every ${_checkInIntervalMinutes} minutes until you tap "I\'ve Arrived".'),
+          backgroundColor: Colors.blue,
+          duration: Duration(seconds: 6),
+        ),
+      );
+    }
+    
+    debugPrint('Journey estimated time reached but check-ins continue until manual completion');
+  }
+  
+  // Method to actually terminate the journey (called when user confirms arrival)
+  void _terminateJourney() {
     setState(() {
       _journeyStarted = false;
+      _allowManualCompletion = false;
     });
     
     _checkInTimer?.cancel();
@@ -737,16 +737,13 @@ class JourneyState extends State<Journey> {
     // Stop background SOS monitoring
     _stopBackgroundSOSMonitoring();
     
+    // Stop live location sharing
+    _stopLiveLocationSharing();
+    
     // Cancel all pending notifications for this journey
     _cancelAllJourneyNotifications();
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Journey completed successfully! You had $_checkInCount check-ins.'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 4),
-      ),
-    );
+    debugPrint('Journey terminated successfully');
   }
   
   // Method to cancel all notifications for the current journey
@@ -1014,8 +1011,8 @@ class JourneyState extends State<Journey> {
         );
       }
       
-      // Check if user is within 100 meters of destination (reasonable arrival threshold)
-      if (distanceToDestination <= 100) {
+      // Check if user is within 1km of destination (reasonable arrival threshold)
+      if (distanceToDestination <= 1000) {
         // User has reached destination - start verification process
         setState(() {
           _isVerifyingArrival = true;
@@ -1023,7 +1020,7 @@ class JourneyState extends State<Journey> {
         
         _showImSafeDialog();
       } else {
-        // User hasn't reached destination - keep journey active and show distance message
+        // User hasn't reached destination - show distance message and keep journey active
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('You are ${(distanceToDestination / 1000).toStringAsFixed(1)}km from destination. Journey continues tracking for your safety.'),
@@ -1039,7 +1036,6 @@ class JourneyState extends State<Journey> {
           content: Text('Unable to get your location. Journey continues tracking for your safety.'),
           backgroundColor: Colors.orange,
           duration: Duration(seconds: 5),
-
         ),
       );
     }
@@ -1172,17 +1168,7 @@ class JourneyState extends State<Journey> {
   void _stopJourneyForNavigation() {
     // Stop journey if it was active
     if (_journeyStarted) {
-      setState(() {
-        _journeyStarted = false;
-      });
-      
-    _checkInTimer?.cancel();
-    _stopLiveLocationSharing();
-
-    
-    // Stop background SOS monitoring - CRITICAL
-    _stopBackgroundSOSMonitoring();      // Cancel all pending notifications for this journey
-      _cancelAllJourneyNotifications();
+      _terminateJourney(); // Use the dedicated termination method
       
       // Send journey cancellation notification to Device B
       _sendJourneyCancellationNotification('User navigation');
@@ -1205,8 +1191,7 @@ class JourneyState extends State<Journey> {
       );
     }
     
-    // Unregister journey globally and clear any cancellation requests
-    JourneyManager.setJourneyActive(false);
+    // Clear any cancellation requests
     JourneyManager.clearCancellationRequest();
   }
   
@@ -1233,13 +1218,8 @@ class JourneyState extends State<Journey> {
       barrierDismissible: false,
       builder: (context) => _ExitVerificationDialog(
         onAuthenticationSuccess: () {
-          // Stop the journey and exit
-          setState(() {
-            _journeyStarted = false;
-          });
-          _checkInTimer?.cancel();
-          // Cancel all pending notifications for this journey
-          _cancelAllJourneyNotifications();
+          // Stop the journey and exit using proper termination
+          _terminateJourney();
           // Send journey cancellation notification to Device B
           _sendJourneyCancellationNotification('Journey exit by user');
           Navigator.pop(context); // Close verification dialog
@@ -1329,23 +1309,12 @@ class JourneyState extends State<Journey> {
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
                 onPressed: () {
-                  // Complete the journey successfully
+                  // Complete the journey successfully using the proper termination method
                   setState(() {
-                    _journeyStarted = false;
                     _isVerifyingArrival = false;
                   });
                   
-                  _checkInTimer?.cancel();
-                  _stopLiveLocationSharing();
-                  
-                  // Stop background SOS monitoring
-                  _stopBackgroundSOSMonitoring();
-                  
-                  // Cancel all pending notifications for this journey
-                  _cancelAllJourneyNotifications();
-                  
-                  // Unregister journey globally
-                  JourneyManager.setJourneyActive(false);
+                  _terminateJourney(); // Use the dedicated termination method
                   
                   Navigator.of(context).pop(); // Close the dialog
                   // Navigate back to homepage and clear the navigation stack
@@ -1743,7 +1712,7 @@ class JourneyState extends State<Journey> {
                               ),
                             ],
                           ),
-                          if (_checkInTimer != null && _checkInTimer!.isActive)
+                          if (_journeyStarted)
                             Row(
                               children: [
                                 Icon(
@@ -1753,7 +1722,9 @@ class JourneyState extends State<Journey> {
                                 ),
                                 SizedBox(width: 4),
                                 Text(
-                                  'Next: ${_checkInIntervalMinutes}min',
+                                  _checkInTimer != null && _checkInTimer!.isActive 
+                                    ? 'Next: ${_checkInIntervalMinutes}min'
+                                    : 'Next: ${_checkInIntervalMinutes}min',
                                   style: TextStyle(
                                     color: Colors.orange,
                                     fontSize: 10,
