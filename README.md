@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # safego
 
 A new Flutter project.
@@ -15,6 +14,3 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
-=======
-# SafeGo
->>>>>>> 4e34b494855a602846b6d52c157390c820f9b84c

@@ -387,13 +387,41 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      builder: (context) => PopScope(
+        canPop: false, // Prevent dismissing without biometric verification
+        onPopInvokedWithResult: (didPop, result) async {
+          if (!didPop) {
+            // User tried to exit - require biometric authentication
+            bool isAuthenticated = await _authService.authenticateWithBiometrics();
+            if (isAuthenticated && context.mounted) {
+              debugPrint('SOS alert cancelled - user authenticated successfully');
+              
+              // Cancel SOS alert notification
+              NotificationService.cancelSOSAlertNotification();
+              
+              // Cancel any scheduled SOS notifications for this check-in
+              NotificationService.cancelScheduledSOSNotification(widget.checkInNumber, widget.journeyStartTime);
+              
+              Navigator.of(context).pop(); // Close SOS dialog
+              
+              // Show confirmation message
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('SOS alert cancelled. Journey continues with regular check-ins for your safety.'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+          }
+        },
+        child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
         Container(
           decoration: const BoxDecoration(
             color: Colors.red,
@@ -495,7 +523,8 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
           ),
         ),
         ],
-      ),
+          ),
+        ),
       ),
     );
   }

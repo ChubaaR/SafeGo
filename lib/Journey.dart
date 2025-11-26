@@ -137,6 +137,9 @@ class JourneyState extends State<Journey> {
   
   // Journey cancellation monitoring
   Timer? _cancellationMonitorTimer;
+  
+  // Arrival verification state
+  bool _isVerifyingArrival = false;
 
   @override
   void initState() {
@@ -1017,14 +1020,11 @@ class JourneyState extends State<Journey> {
       
       // Check if user is within 100 meters of destination (reasonable arrival threshold)
       if (distanceToDestination <= 100) {
-        // User has reached destination - stop tracking and show "I'm Safe" dialog
+        // User has reached destination - start verification process
         setState(() {
-          _journeyStarted = false;
+          _isVerifyingArrival = true;
         });
         
-        _checkInTimer?.cancel();
-        _stopLiveLocationSharing();
-  // _exportLocationTimer removed
         _showImSafeDialog();
       } else {
         // User hasn't reached destination - keep journey active and show distance message
@@ -1220,6 +1220,12 @@ class JourneyState extends State<Journey> {
       barrierDismissible: false,
       builder: (context) => _ArrivalAuthenticationDialog(
         onAuthenticationSuccess: _showImSafeConfirmationDialog,
+        onAuthenticationCancelled: () {
+          // Reset verification state when authentication is cancelled
+          setState(() {
+            _isVerifyingArrival = false;
+          });
+        },
         checkInCount: _checkInCount,
       ),
     );
@@ -1327,6 +1333,24 @@ class JourneyState extends State<Journey> {
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
                 onPressed: () {
+                  // Complete the journey successfully
+                  setState(() {
+                    _journeyStarted = false;
+                    _isVerifyingArrival = false;
+                  });
+                  
+                  _checkInTimer?.cancel();
+                  _stopLiveLocationSharing();
+                  
+                  // Stop background SOS monitoring
+                  _stopBackgroundSOSMonitoring();
+                  
+                  // Cancel all pending notifications for this journey
+                  _cancelAllJourneyNotifications();
+                  
+                  // Unregister journey globally
+                  JourneyManager.setJourneyActive(false);
+                  
                   Navigator.of(context).pop(); // Close the dialog
                   // Navigate back to homepage and clear the navigation stack
                   Navigator.of(context).pushAndRemoveUntil(
@@ -1396,8 +1420,16 @@ class JourneyState extends State<Journey> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.green,
+    return PopScope(
+      canPop: false, // Prevent unauthorized exit during journey
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          // Handle all types of exit attempts (swipe or back button) through biometric verification
+          _handleJourneyExit();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.green,
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 255, 225, 190), // Override AppBar background color
         foregroundColor: Colors.black, // Override AppBar icon/text color
@@ -1451,7 +1483,7 @@ class JourneyState extends State<Journey> {
               _bottomNavIndex = index;
             });
             if (index == 0) {
-              // Navigate to HomePage with protection
+              // Navigate to HomePage with verification
               _handleProtectedNavigation(() {
                 Navigator.pushReplacement(
                   context,
@@ -1459,7 +1491,7 @@ class JourneyState extends State<Journey> {
                 );
               });
             } else if (index == 1) {
-              // Navigate to MyProfile with protection
+              // Navigate to MyProfile with verification
               _handleProtectedNavigation(() {
                 Navigator.push(
                   context,
@@ -1792,9 +1824,9 @@ class JourneyState extends State<Journey> {
                         SizedBox(
                           width: 350, // Set the desired width for a longer button
                           child: ElevatedButton.icon(
-                          onPressed: _stopJourney,
-                          icon: Icon(Icons.stop, size: 20),
-                          label: Text('I’VE ARRIVED'),
+                          onPressed: _isVerifyingArrival ? null : _stopJourney, // Disable during verification
+                          icon: Icon(_isVerifyingArrival ? Icons.hourglass_empty : Icons.stop, size: 20),
+                          label: Text(_isVerifyingArrival ? 'VERIFYING ARRIVAL...' : 'I\'VE ARRIVED'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
@@ -1856,7 +1888,8 @@ class JourneyState extends State<Journey> {
 
           ],
         ),
-      );
+      ), // Close Scaffold
+    ); // Close PopScope
 
   }
 
@@ -1884,10 +1917,12 @@ class JourneyState extends State<Journey> {
 // Authentication dialog widget for arrival verification
 class _ArrivalAuthenticationDialog extends StatefulWidget {
   final VoidCallback onAuthenticationSuccess;
+  final VoidCallback? onAuthenticationCancelled;
   final int checkInCount;
 
   const _ArrivalAuthenticationDialog({
     required this.onAuthenticationSuccess,
+    this.onAuthenticationCancelled,
     required this.checkInCount,
   });
 
@@ -1972,6 +2007,7 @@ class _ArrivalAuthenticationDialogState extends State<_ArrivalAuthenticationDial
           _timer?.cancel();
           // Auto-fail authentication when timer reaches 0
           Navigator.of(context).pop(); // Close dialog
+          widget.onAuthenticationCancelled?.call(); // Reset verification state
           
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -2029,7 +2065,11 @@ class _ArrivalAuthenticationDialogState extends State<_ArrivalAuthenticationDial
                 ),
                 leading: IconButton(
                   icon: const Icon(Icons.close, color: Colors.black),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    // Reset verification state when dialog is closed without authentication
+                    Navigator.of(context).pop();
+                    widget.onAuthenticationCancelled?.call();
+                  },
                 ),
                 centerTitle: true,
               ),

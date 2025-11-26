@@ -216,7 +216,16 @@ class _EmergencyDialogState extends State<_EmergencyDialog> {
         await showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => Dialog(
+          builder: (context) => PopScope(
+            canPop: false, // Prevent unauthorized dismissal of safety confirmation
+            onPopInvoked: (didPop) {
+              if (!didPop) {
+                // For the "I'm Safe" confirmation, we can allow dismissal since the SOS was already cancelled
+                // But we'll just dismiss it normally - no additional biometrics needed for this confirmation
+                Navigator.of(context).pop();
+              }
+            },
+            child: Dialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -271,7 +280,8 @@ class _EmergencyDialogState extends State<_EmergencyDialog> {
                 ),
               ],
             ),
-          ),
+            ), // Close Dialog
+          ), // Close PopScope
         );
       } else {
         // Authentication failed - stay in the authentication popup
@@ -311,7 +321,29 @@ class _EmergencyDialogState extends State<_EmergencyDialog> {
             showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => Dialog(
+            builder: (context) => PopScope(
+              canPop: false, // Prevent unauthorized exit from SOS alert dialog
+              onPopInvoked: (didPop) async {
+                if (!didPop) {
+                  // Handle swipe/back gesture attempts - require biometric verification
+                  bool isAuthenticated = await _authService.authenticateWithBiometrics();
+                  if (isAuthenticated) {
+                    // User confirmed they are safe
+                    debugPrint('SOS alert cancelled via swipe/back - user confirmed safety');
+                    Navigator.of(context).pop();
+                  } else {
+                    // Authentication failed - show message and keep dialog open
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Authentication failed. Cannot dismiss SOS alert.'),
+                        backgroundColor: Colors.red,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: Dialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -404,7 +436,8 @@ class _EmergencyDialogState extends State<_EmergencyDialog> {
               ),
               ],
             ),
-            ),
+            ), // Close Dialog
+            ), // Close PopScope
           );
         }
       });
