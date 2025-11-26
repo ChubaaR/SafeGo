@@ -129,7 +129,7 @@ class JourneyState extends State<Journey> {
   Timer? _backgroundSOSTimer;
   Map<int, DateTime> _scheduledCheckIns = {}; // Track scheduled check-ins
   Map<int, bool> _checkInResponses = {}; // Track if check-ins were responded to
-  final int _missedCheckInGracePeriod = 30; // 30 seconds grace period after scheduled check-in
+  final int _missedCheckInGracePeriod = 30; // 30 seconds period after scheduled check-in
 
   // Live location sharing variables
   Timer? _liveLocationTimer;
@@ -368,7 +368,7 @@ class JourneyState extends State<Journey> {
         speedKmPerHour = 5.0; // Average walking speed
         break;
       case 'transit':
-        speedKmPerHour = 25.0; // Average transit speed (slower than driving)
+        speedKmPerHour = 25.0; // Average transit speed 
         break;
       default:
         speedKmPerHour = 50.0;
@@ -568,9 +568,6 @@ class JourneyState extends State<Journey> {
       // Start live location sharing with emergency contacts
       _startLiveLocationSharing();
       
-      // NOTE: exporting current location to external files/apps (e.g., emergsg) is disabled
-      // by design to protect user privacy and avoid leaking location data.
-      // _startExportingCurrentLocation();
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
