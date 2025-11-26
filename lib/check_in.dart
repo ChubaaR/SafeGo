@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'auth_service.dart';
 import 'notification_service.dart';
 
@@ -251,12 +252,28 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
         }
       }
       
-      // Get current location
+      // Get current location with address conversion (same as SOS button)
       try {
         Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         );
-        userLocation = '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
+        
+        // Set coordinates as fallback first
+        String coordinates = '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
+        userLocation = coordinates;
+        
+        // Try multiple fast methods to get human-readable address
+        await _getFastReadableAddress(position.latitude, position.longitude).then((address) {
+          if (address != null && address.isNotEmpty && address != coordinates) {
+            userLocation = address;
+            debugPrint('✅ Check-in got fast readable address: $userLocation');
+          } else {
+            debugPrint('⚠️ Check-in: Fast address conversion failed, using coordinates');
+          }
+        }).catchError((error) {
+          debugPrint('⚠️ Check-in: Error in fast address conversion: $error');
+        });
+        
       } catch (e) {
         debugPrint('Error getting location for missed check-in notification: $e');
         userLocation = 'Location unavailable';
@@ -779,6 +796,85 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
         ),
       ),
     );
+  }
+
+  // Fast address conversion with timeout and comprehensive address building (identical to notification service)
+  Future<String?> _getFastReadableAddress(double lat, double lon) async {
+    try {
+      debugPrint('🔍 Fast geocoding for coordinates: $lat, $lon');
+      
+      // Use Flutter's built-in geocoding with timeout for speed
+      final future = placemarkFromCoordinates(lat, lon);
+      final placemarks = await future.timeout(
+        const Duration(seconds: 3), // Fast timeout
+        onTimeout: () {
+          debugPrint('⏰ Fast geocoding timeout after 3 seconds');
+          return <Placemark>[];
+        },
+      );
+      
+      debugPrint('📋 Fast geocoding returned ${placemarks.length} placemarks');
+      
+      if (placemarks.isNotEmpty) {
+        final placemark = placemarks.first;
+        
+        debugPrint('🏠 Fast geocoding placemark details:');
+        debugPrint('   Street: ${placemark.street}');
+        debugPrint('   SubLocality: ${placemark.subLocality}');
+        debugPrint('   Locality: ${placemark.locality}');
+        debugPrint('   SubAdministrativeArea: ${placemark.subAdministrativeArea}');
+        debugPrint('   AdministrativeArea: ${placemark.administrativeArea}');
+        debugPrint('   PostalCode: ${placemark.postalCode}');
+        debugPrint('   Country: ${placemark.country}');
+        debugPrint('   IsoCountryCode: ${placemark.isoCountryCode}');
+        
+        // Build a readable location string with comprehensive address components (identical to notification service)
+        List<String> locationParts = [];
+        
+        // Add street number and name
+        if (placemark.street != null && placemark.street!.isNotEmpty) {
+          locationParts.add(placemark.street!);
+        }
+        
+        // Add sub-locality (neighborhood) if available
+        if (placemark.subLocality != null && placemark.subLocality!.isNotEmpty) {
+          locationParts.add(placemark.subLocality!);
+        }
+        
+        // Add locality (city/town)
+        if (placemark.locality != null && placemark.locality!.isNotEmpty) {
+          locationParts.add(placemark.locality!);
+        }
+        
+        // Add sub-administrative area (county) if no locality
+        if (locationParts.isEmpty && placemark.subAdministrativeArea != null && placemark.subAdministrativeArea!.isNotEmpty) {
+          locationParts.add(placemark.subAdministrativeArea!);
+        }
+        
+        // Add administrative area (state/province)
+        if (placemark.administrativeArea != null && placemark.administrativeArea!.isNotEmpty) {
+          locationParts.add(placemark.administrativeArea!);
+        }
+        
+        // Add country
+        if (placemark.country != null && placemark.country!.isNotEmpty) {
+          locationParts.add(placemark.country!);
+        }
+
+        String readableLocation = locationParts.join(', ');
+        if (readableLocation.isNotEmpty) {
+          debugPrint('🚀 Fast geocoding success: $readableLocation');
+          return readableLocation;
+        }
+      }
+      
+      debugPrint('⚠️ Fast geocoding returned no usable address parts');
+      return null;
+      
+    } catch (e) {
+      debugPrint('❌ Fast geocoding error: $e');
+      return null;
+    }
   }
 }
 

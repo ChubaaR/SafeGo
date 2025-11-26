@@ -841,15 +841,49 @@ class NotificationService {
         iOS: iosDetails,
       );
 
-      // Convert coordinates to readable location name
-      final String readableLocation = await _convertCoordinatesToLocation(userLocation);
-      final String locationInfo = readableLocation.isNotEmpty ? '\n$readableLocation' : '';
+      // Convert coordinates to readable location name (skip if already readable)
+      String readableLocation = '';
+      bool needsConversion = userLocation != null && 
+                            userLocation.isNotEmpty && 
+                            userLocation != 'Location unavailable' &&
+                            userLocation.contains(RegExp(r'^\-?\d+\.\d+,\s*\-?\d+\.\d+$'));
       
-      ////this iis for emergency contact to view
+      if (needsConversion) {
+        debugPrint('🔄 Converting coordinates to address...');
+        readableLocation = await _convertCoordinatesToLocation(userLocation);
+      } else {
+        debugPrint('⚡ Skipping conversion - location already readable or unavailable');
+      }
+      
+      // Build user-friendly location info for emergency contacts
+      String locationInfo = '';
+      if (userLocation != null && userLocation.isNotEmpty && userLocation != 'Location unavailable') {
+        // Check if userLocation is already a readable address (not coordinates)
+        bool isCoordinateFormat = userLocation.contains(RegExp(r'^\-?\d+\.\d+,\s*\-?\d+\.\d+$'));
+        
+        if (!isCoordinateFormat) {
+          // Location is already a readable address from check-in system
+          locationInfo = '\n📍 $userLocation';
+          debugPrint('✅ Using pre-converted address: $userLocation');
+        } else if (readableLocation.isNotEmpty && readableLocation != userLocation) {
+          // Convert coordinates to readable address
+          locationInfo = '\n📍 $readableLocation';
+          debugPrint('✅ Converted coordinates to address: $readableLocation');
+        } else {
+          // Show generic location message if conversion failed
+          locationInfo = '\n📍 Location detected (address unavailable)';
+          debugPrint('⚠️ Address conversion failed for coordinates: $userLocation');
+        }
+      } else {
+        locationInfo = '\n📍 Location unavailable';
+        debugPrint('❌ No location data available');
+      }
+      
+      ////this is for emergency contact to view full location details
       await _notifications.show(
         777777, // Unique ID for missed check-in notifications
         '⚠️ SOS CHECK-IN ALERT ⚠️',
-        '$userName triggers #$checkInNumber SOS check on $missedTime at $locationInfo \n\nContact them now.',
+        '$userName triggers #$checkInNumber SOS check on $missedTime$locationInfo\n\nContact them now.',
         platformChannelSpecifics,
         payload: 'missed_checkin_$checkInNumber',
       );
@@ -1271,22 +1305,30 @@ class NotificationService {
         }
       }
       
-      // Get current location
+      // Get current location with real-time accuracy
       try {
         Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         );
         userLocation = '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
+        debugPrint('Background SOS alert triggered for missed check-in #$checkInNumber for user: $userName at location: $userLocation');
       } catch (e) {
         debugPrint('Error getting location for check-in timeout SOS: $e');
         userLocation = 'Location unavailable';
       }
       
-      // SOS alert notification removed - no longer calling showSOSAlertNotification
+      // Format missed time
+      final now = DateTime.now();
+      final missedTime = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
       
-      // FCM notification removed - no longer sending SOS alerts for check-in timeouts
+      // Send the actual missed check-in notification with real-time location
+      await showMissedCheckInNotification(
+        userName: userName,
+        checkInNumber: checkInNumber,
+        missedTime: missedTime,
+        userLocation: userLocation,
+      );
       
-      debugPrint('Background SOS alert notification sent for $userName at location: $userLocation');
       debugPrint('📄 Document data: 🚨 SOS ALERT SENT 🚨 from $userName to FCM token');
       debugPrint('Note: Journey will continue with regular check-ins even if SOS is canceled');
       
@@ -1329,55 +1371,121 @@ class NotificationService {
   
   // Convert coordinates to readable location name
   static Future<String> _convertCoordinatesToLocation(String? locationString) async {
+    debugPrint('🔍 Converting location: $locationString');
+    
     if (locationString == null || locationString.isEmpty || locationString == 'Location unavailable') {
+      debugPrint('❌ Location string is null, empty, or unavailable');
       return 'Location unavailable';
     }
 
     try {
       // Parse coordinates from the string (format: "lat, lng")
       final parts = locationString.split(', ');
-      if (parts.length != 2) return locationString; // Return original if not coordinate format
-
-      final lat = double.tryParse(parts[0]);
-      final lng = double.tryParse(parts[1]);
+      debugPrint('📍 Parsed coordinate parts: $parts (length: ${parts.length})');
       
-      if (lat == null || lng == null) return locationString; // Return original if parsing fails
+      if (parts.length != 2) {
+        debugPrint('❌ Invalid coordinate format - expected 2 parts but got ${parts.length}');
+        return locationString; // Return original if not coordinate format
+      }
+
+      final lat = double.tryParse(parts[0].trim());
+      final lng = double.tryParse(parts[1].trim());
+      
+      debugPrint('🌐 Parsed coordinates: lat=$lat, lng=$lng');
+      
+      if (lat == null || lng == null) {
+        debugPrint('❌ Failed to parse coordinates as numbers');
+        return locationString; // Return original if parsing fails
+      }
+
+      // Validate coordinate ranges
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        debugPrint('❌ Invalid coordinate ranges: lat=$lat (must be -90 to 90), lng=$lng (must be -180 to 180)');
+        return locationString;
+      }
+
+      debugPrint('🔎 Starting reverse geocoding for coordinates: $lat, $lng');
 
       // Use reverse geocoding to get readable address
       List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
       
+      debugPrint('📋 Geocoding returned ${placemarks.length} placemarks');
+      
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
         
-        // Build a readable location string
+        debugPrint('🏠 Placemark details:');
+        debugPrint('   Street: ${placemark.street}');
+        debugPrint('   SubLocality: ${placemark.subLocality}');
+        debugPrint('   Locality: ${placemark.locality}');
+        debugPrint('   SubAdministrativeArea: ${placemark.subAdministrativeArea}');
+        debugPrint('   AdministrativeArea: ${placemark.administrativeArea}');
+        debugPrint('   PostalCode: ${placemark.postalCode}');
+        debugPrint('   Country: ${placemark.country}');
+        debugPrint('   IsoCountryCode: ${placemark.isoCountryCode}');
+        
+        // Build a readable location string with more comprehensive address components
         List<String> locationParts = [];
         
+        // Add street number and name
         if (placemark.street != null && placemark.street!.isNotEmpty) {
           locationParts.add(placemark.street!);
         }
+        
+        // Add sub-locality (neighborhood) if available
+        if (placemark.subLocality != null && placemark.subLocality!.isNotEmpty) {
+          locationParts.add(placemark.subLocality!);
+        }
+        
+        // Add locality (city/town)
         if (placemark.locality != null && placemark.locality!.isNotEmpty) {
           locationParts.add(placemark.locality!);
         }
+        
+        // Add sub-administrative area (county) if no locality
+        if (locationParts.isEmpty && placemark.subAdministrativeArea != null && placemark.subAdministrativeArea!.isNotEmpty) {
+          locationParts.add(placemark.subAdministrativeArea!);
+        }
+        
+        // Add administrative area (state/province)
         if (placemark.administrativeArea != null && placemark.administrativeArea!.isNotEmpty) {
           locationParts.add(placemark.administrativeArea!);
         }
+        
+        // Add country
         if (placemark.country != null && placemark.country!.isNotEmpty) {
           locationParts.add(placemark.country!);
         }
 
         String readableLocation = locationParts.join(', ');
+        debugPrint('✅ Built readable location: "$readableLocation"');
         
-        // Trim if too long (limit to ~50 characters for notification readability)
-        if (readableLocation.length > 50) {
-          readableLocation = readableLocation.substring(0, 47) + '...';
+        // Return full location without character limit for emergency contacts
+        if (readableLocation.isNotEmpty) {
+          return readableLocation;
+        } else {
+          debugPrint('⚠️ No readable location parts found, returning coordinates');
+          return locationString;
         }
-        
-        return readableLocation.isNotEmpty ? readableLocation : locationString;
+      } else {
+        debugPrint('⚠️ No placemarks returned from geocoding');
+        return locationString;
       }
-    } catch (e) {
-      debugPrint('Error converting coordinates to location: $e');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error converting coordinates to location: $e');
+      debugPrint('📍 Stack trace: $stackTrace');
+      
+      // Check for specific error types
+      if (e.toString().contains('NETWORK_ERROR') || e.toString().contains('network')) {
+        debugPrint('🌐 Network error detected - check internet connection');
+      } else if (e.toString().contains('PERMISSION_DENIED')) {
+        debugPrint('🔐 Permission denied - check location permissions');
+      } else if (e.toString().contains('SERVICE_DISABLED')) {
+        debugPrint('📱 Location service disabled');
+      }
     }
     
+    debugPrint('🔄 Returning original coordinates due to conversion failure');
     return locationString; // Return original coordinates if conversion fails
   }
 
