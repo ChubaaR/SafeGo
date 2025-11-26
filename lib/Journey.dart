@@ -585,7 +585,7 @@ class JourneyState extends State<Journey> {
   void _setupCheckInTimer() {
     if (routeDuration == null) return;
     
-    // Extract minutes from routeDuration (format: "XX min")
+    // Extract minutes from routeDuration
     final durationText = routeDuration!.replaceAll(' min', '').replaceAll(' min (estimate)', '');
     _totalJourneyMinutes = int.tryParse(durationText) ?? 10;
     
@@ -593,9 +593,9 @@ class JourneyState extends State<Journey> {
     // If total journey < 10 minutes -> 5 minute intervals
     // If total journey >= 10 minutes -> 10 minute intervals
     if (_totalJourneyMinutes < 10) {
-      _checkInIntervalMinutes = 1; // 5 minute intervals for short journeys
+      _checkInIntervalMinutes = 1; // 5 minute intervals for short journeys (but 1 minute for testing)
     } else {
-      _checkInIntervalMinutes = 2; // 10 minute intervals for longer journeys
+      _checkInIntervalMinutes = 2; // 10 minute intervals for longer journeys (but 2 minutes for testing)
     }
     
     debugPrint('Check-in timer setup: ${_totalJourneyMinutes}min journey, ${_checkInIntervalMinutes}min intervals');
@@ -747,7 +747,6 @@ class JourneyState extends State<Journey> {
         duration: Duration(seconds: 4),
       ),
     );
-  // Stop exporting current location (removed)
   }
   
   // Method to cancel all notifications for the current journey
@@ -1179,9 +1178,9 @@ class JourneyState extends State<Journey> {
       
     _checkInTimer?.cancel();
     _stopLiveLocationSharing();
-  // _exportLocationTimer removed
+
     
-    // Stop background SOS monitoring - CRITICAL: This was missing!
+    // Stop background SOS monitoring - CRITICAL
     _stopBackgroundSOSMonitoring();      // Cancel all pending notifications for this journey
       _cancelAllJourneyNotifications();
       
