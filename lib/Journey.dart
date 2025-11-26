@@ -23,13 +23,13 @@ import 'package:intl/intl.dart';
 import 'package:safego/models/emergency_contact.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Global Journey Manager for cross-page communication
+// Global Journey Manager for cross-page communication
 class JourneyManager {
   static const String _journeyActiveKey = 'safego_journey_active';
   static const String _journeyStartTimeKey = 'safego_journey_start_time';
   static const String _journeyCancelRequestKey = 'safego_journey_cancel_request';
   
-  /// Set journey as active globally
+  // Set journey as active globally
   static Future<void> setJourneyActive(bool active, {DateTime? startTime}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_journeyActiveKey, active);
@@ -40,33 +40,33 @@ class JourneyManager {
     }
   }
   
-  /// Check if any journey is active globally
+  // Check if any journey is active globally
   static Future<bool> isJourneyActive() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_journeyActiveKey) ?? false;
   }
   
-  /// Request journey cancellation globally
+  // Request journey cancellation globally
   static Future<void> requestJourneyCancellation() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_journeyCancelRequestKey, true);
     await prefs.setString('${_journeyCancelRequestKey}_timestamp', DateTime.now().toIso8601String());
   }
   
-  /// Check if journey cancellation was requested
+  // Check if journey cancellation was requested
   static Future<bool> isCancellationRequested() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_journeyCancelRequestKey) ?? false;
   }
   
-  /// Clear cancellation request (called by journey page when it processes the cancellation)
+  // Clear cancellation request (called by journey page when it processes the cancellation)
   static Future<void> clearCancellationRequest() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_journeyCancelRequestKey);
     await prefs.remove('${_journeyCancelRequestKey}_timestamp');
   }
   
-  /// Get journey start time
+  // Get journey start time
   static Future<DateTime?> getJourneyStartTime() async {
     final prefs = await SharedPreferences.getInstance();
     final timeString = prefs.getString(_journeyStartTimeKey);
@@ -1822,7 +1822,7 @@ class JourneyState extends State<Journey> {
 
                         if (_journeyStarted)
                         SizedBox(
-                          width: 350, // Set the desired width for a longer button
+                          width: 350, 
                           child: ElevatedButton.icon(
                           onPressed: _isVerifyingArrival ? null : _stopJourney, // Disable during verification
                           icon: Icon(_isVerifyingArrival ? Icons.hourglass_empty : Icons.stop, size: 20),
@@ -1888,8 +1888,8 @@ class JourneyState extends State<Journey> {
 
           ],
         ),
-      ), // Close Scaffold
-    ); // Close PopScope
+      ), 
+    ); 
 
   }
 

@@ -246,15 +246,6 @@ class MyProfileState extends State<MyProfile> {
     );
   }
 
-  // Copy FCM token to clipboard
-  Future<void> _copyTokenToClipboard() async {
-    if (_currentUserToken != null) {
-      await Clipboard.setData(ClipboardData(text: _currentUserToken!));
-      _showMessage('📋 FCM token copied to clipboard!');
-    }
-  }
-
-
 
 
   void _signOut() {

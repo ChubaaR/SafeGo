@@ -654,22 +654,6 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
     return 'Location in Malaysia';
   }
 
-  String _calculateJourneyDuration(Timestamp? journeyStart) {
-    if (journeyStart == null) return 'Unknown';
-    
-    final now = DateTime.now();
-    final startTime = journeyStart.toDate();
-    final duration = now.difference(startTime);
-    
-    if (duration.inDays > 0) {
-      return '${duration.inDays}d ${duration.inHours % 24}h ${duration.inMinutes % 60}m';
-    } else if (duration.inHours > 0) {
-      return '${duration.inHours}h ${duration.inMinutes % 60}m';
-    } else {
-      return '${duration.inMinutes}m ${duration.inSeconds % 60}s';
-    }
-  }
-
   double _calculateTotalDistance(List<LatLng> routePoints, LatLng currentLocation) {
     if (routePoints.isEmpty) return 0.0;
     
@@ -701,6 +685,51 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
 
   double _degreesToRadians(double degrees) {
     return degrees * (math.pi / 180);
+  }
+
+  String _calculateEstimatedArrival(double currentLat, double currentLon, LatLng? destination) {
+    if (destination == null) {
+      return 'No destination set';
+    }
+    
+    // Calculate distance to destination in meters
+    final double distanceToDestination = _distanceBetween(
+      currentLat, currentLon, 
+      destination.latitude, destination.longitude
+    );
+    
+    // Convert to kilometers
+    final double distanceKm = distanceToDestination / 1000;
+    
+    // Estimate travel time based on average speeds
+    // Assume different speeds based on distance (walking/driving)
+    double estimatedMinutes;
+    
+    if (distanceKm < 2.0) {
+      // Walking speed for short distances (5 km/h)
+      estimatedMinutes = (distanceKm / 5.0) * 60;
+    } else if (distanceKm < 10.0) {
+      // City driving/public transport (25 km/h average)
+      estimatedMinutes = (distanceKm / 25.0) * 60;
+    } else {
+      // Highway/faster travel (50 km/h average)
+      estimatedMinutes = (distanceKm / 50.0) * 60;
+    }
+    
+    // Format the estimated time
+    if (estimatedMinutes < 1) {
+      return 'Arriving soon';
+    } else if (estimatedMinutes < 60) {
+      return '${estimatedMinutes.round()} min';
+    } else {
+      final hours = (estimatedMinutes / 60).floor();
+      final remainingMinutes = (estimatedMinutes % 60).round();
+      if (remainingMinutes == 0) {
+        return '~${hours}h to arrive';
+      } else {
+        return '~${hours}h ${remainingMinutes}m to arrive';
+      }
+    }
   }
 
   @override
@@ -1073,7 +1102,7 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
                               // Journey time display
                               const SizedBox(height: 8),
                               Text(
-                                'Journey Time',
+                                'Estimated Arrival',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[600],
@@ -1083,13 +1112,13 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
                               Row(
                                 children: [
                                   Icon(
-                                    Icons.timer,
+                                    Icons.access_time,
                                     size: 16,
                                     color: Colors.blue[600],
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    _calculateJourneyDuration(ts),
+                                    _calculateEstimatedArrival(lat, lon, destination),
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
