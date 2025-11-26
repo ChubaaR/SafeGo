@@ -1424,39 +1424,71 @@ class NotificationService {
         debugPrint('   Country: ${placemark.country}');
         debugPrint('   IsoCountryCode: ${placemark.isoCountryCode}');
         
-        // Build a readable location string with more comprehensive address components
+        // Build a readable location string with comprehensive address components (duplicate-safe)
         List<String> locationParts = [];
         
-        // Add street number and name
+        // Add street number and name (avoid duplicates)
         if (placemark.street != null && placemark.street!.isNotEmpty) {
-          locationParts.add(placemark.street!);
+          String streetInfo = placemark.street!.trim();
+          if (streetInfo.isNotEmpty && !locationParts.contains(streetInfo)) {
+            locationParts.add(streetInfo);
+          }
         }
         
-        // Add sub-locality (neighborhood) if available
+        // Add sub-locality (neighborhood) if available (avoid duplicates)
         if (placemark.subLocality != null && placemark.subLocality!.isNotEmpty) {
-          locationParts.add(placemark.subLocality!);
+          String subLocalityInfo = placemark.subLocality!.trim();
+          if (subLocalityInfo.isNotEmpty && !locationParts.contains(subLocalityInfo)) {
+            locationParts.add(subLocalityInfo);
+          }
         }
         
-        // Add locality (city/town)
+        // Add locality (city/town) (avoid duplicates)
         if (placemark.locality != null && placemark.locality!.isNotEmpty) {
-          locationParts.add(placemark.locality!);
+          String localityInfo = placemark.locality!.trim();
+          if (localityInfo.isNotEmpty && !locationParts.contains(localityInfo)) {
+            locationParts.add(localityInfo);
+          }
         }
         
-        // Add sub-administrative area (county) if no locality
-        if (locationParts.isEmpty && placemark.subAdministrativeArea != null && placemark.subAdministrativeArea!.isNotEmpty) {
-          locationParts.add(placemark.subAdministrativeArea!);
+        // Add sub-administrative area (county) if no locality (avoid duplicates)
+        if (placemark.subAdministrativeArea != null && placemark.subAdministrativeArea!.isNotEmpty) {
+          String subAdminInfo = placemark.subAdministrativeArea!.trim();
+          if (subAdminInfo.isNotEmpty && !locationParts.contains(subAdminInfo)) {
+            // Only add if we don't already have locality information
+            bool hasLocalityInfo = locationParts.any((part) => 
+              part.toLowerCase().contains('kuala lumpur') || 
+              part.toLowerCase().contains('selangor') ||
+              part.toLowerCase().contains('penang'));
+            if (!hasLocalityInfo) {
+              locationParts.add(subAdminInfo);
+            }
+          }
         }
         
-        // Add administrative area (state/province)
+        // Add administrative area (state/province) (avoid duplicates)
         if (placemark.administrativeArea != null && placemark.administrativeArea!.isNotEmpty) {
-          locationParts.add(placemark.administrativeArea!);
+          String adminInfo = placemark.administrativeArea!.trim();
+          if (adminInfo.isNotEmpty && !locationParts.contains(adminInfo)) {
+            locationParts.add(adminInfo);
+          }
         }
         
-        // Add country
+        // Add country (avoid duplicates)
         if (placemark.country != null && placemark.country!.isNotEmpty) {
-          locationParts.add(placemark.country!);
+          String countryInfo = placemark.country!.trim();
+          if (countryInfo.isNotEmpty && !locationParts.contains(countryInfo)) {
+            locationParts.add(countryInfo);
+          }
         }
 
+        // Remove any empty parts and duplicates, then join
+        locationParts = locationParts
+            .where((part) => part.trim().isNotEmpty)
+            .map((part) => part.trim())
+            .toSet()  // Remove duplicates
+            .toList();
+        
         String readableLocation = locationParts.join(', ');
         debugPrint('✅ Built readable location: "$readableLocation"');
         

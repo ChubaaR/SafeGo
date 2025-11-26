@@ -362,24 +362,103 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
 
   Future<String> _getAddressText(double lat, double lon) async {
     try {
+      debugPrint('🔍 Emergency contacts live view geocoding for coordinates: $lat, $lon');
+      
       List<Placemark> placemarks = await placemarkFromCoordinates(lat, lon);
+      
+      debugPrint('📋 Emergency contacts geocoding returned ${placemarks.length} placemarks');
+      
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
-        final address = [
-          placemark.name,
-          placemark.street,
-          placemark.locality,
-          placemark.administrativeArea,
-          placemark.country,
-        ].where((element) => element != null && element.isNotEmpty).join(', ');
         
-        return address.isNotEmpty ? address : 'Current Location';
+        debugPrint('🏠 Emergency contacts placemark details:');
+        debugPrint('   Street: ${placemark.street}');
+        debugPrint('   SubLocality: ${placemark.subLocality}');
+        debugPrint('   Locality: ${placemark.locality}');
+        debugPrint('   SubAdministrativeArea: ${placemark.subAdministrativeArea}');
+        debugPrint('   AdministrativeArea: ${placemark.administrativeArea}');
+        debugPrint('   PostalCode: ${placemark.postalCode}');
+        debugPrint('   Country: ${placemark.country}');
+        debugPrint('   IsoCountryCode: ${placemark.isoCountryCode}');
+        
+        // Build a readable location string with comprehensive address components (duplicate-safe)
+        List<String> locationParts = [];
+        
+        // Add street number and name (avoid duplicates)
+        if (placemark.street != null && placemark.street!.isNotEmpty) {
+          String streetInfo = placemark.street!.trim();
+          if (streetInfo.isNotEmpty && !locationParts.contains(streetInfo)) {
+            locationParts.add(streetInfo);
+          }
+        }
+        
+        // Add sub-locality (neighborhood) if available (avoid duplicates)
+        if (placemark.subLocality != null && placemark.subLocality!.isNotEmpty) {
+          String subLocalityInfo = placemark.subLocality!.trim();
+          if (subLocalityInfo.isNotEmpty && !locationParts.contains(subLocalityInfo)) {
+            locationParts.add(subLocalityInfo);
+          }
+        }
+        
+        // Add locality (city/town) (avoid duplicates)
+        if (placemark.locality != null && placemark.locality!.isNotEmpty) {
+          String localityInfo = placemark.locality!.trim();
+          if (localityInfo.isNotEmpty && !locationParts.contains(localityInfo)) {
+            locationParts.add(localityInfo);
+          }
+        }
+        
+        // Add sub-administrative area (county) if no locality (avoid duplicates)
+        if (placemark.subAdministrativeArea != null && placemark.subAdministrativeArea!.isNotEmpty) {
+          String subAdminInfo = placemark.subAdministrativeArea!.trim();
+          if (subAdminInfo.isNotEmpty && !locationParts.contains(subAdminInfo)) {
+            // Only add if we don't already have locality information
+            bool hasLocalityInfo = locationParts.any((part) => 
+              part.toLowerCase().contains('kuala lumpur') || 
+              part.toLowerCase().contains('selangor') ||
+              part.toLowerCase().contains('penang'));
+            if (!hasLocalityInfo) {
+              locationParts.add(subAdminInfo);
+            }
+          }
+        }
+        
+        // Add administrative area (state/province) (avoid duplicates)
+        if (placemark.administrativeArea != null && placemark.administrativeArea!.isNotEmpty) {
+          String adminInfo = placemark.administrativeArea!.trim();
+          if (adminInfo.isNotEmpty && !locationParts.contains(adminInfo)) {
+            locationParts.add(adminInfo);
+          }
+        }
+        
+        // Add country (avoid duplicates)
+        if (placemark.country != null && placemark.country!.isNotEmpty) {
+          String countryInfo = placemark.country!.trim();
+          if (countryInfo.isNotEmpty && !locationParts.contains(countryInfo)) {
+            locationParts.add(countryInfo);
+          }
+        }
+
+        // Remove any empty parts and duplicates, then join
+        locationParts = locationParts
+            .where((part) => part.trim().isNotEmpty)
+            .map((part) => part.trim())
+            .toSet()  // Remove duplicates
+            .toList();
+        
+        String readableLocation = locationParts.join(', ');
+        if (readableLocation.isNotEmpty) {
+          debugPrint('🚀 Emergency contacts geocoding success: $readableLocation');
+          return readableLocation;
+        }
       }
+      
+      debugPrint('⚠️ Emergency contacts geocoding returned no usable address parts');
+      return 'Current Location';
     } catch (e) {
+      debugPrint('❌ Emergency contacts geocoding error: $e');
       return 'Current Location';
     }
-    
-    return 'Current Location';
   }
 
   double _distanceBetween(double lat1, double lon1, double lat2, double lon2) {
