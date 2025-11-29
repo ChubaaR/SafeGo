@@ -12,7 +12,7 @@ class FirebaseMessagingService {
   static Future<void> initialize() async {
     print('[FCM] Initializing Firebase Messaging');
     
-    // Request permission for iOS
+    // Request permission
     NotificationSettings settings = await _messaging.requestPermission(
       alert: true,
       announcement: false,

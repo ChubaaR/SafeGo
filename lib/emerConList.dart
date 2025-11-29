@@ -109,7 +109,7 @@ class EmerConListState extends State<EmerConList> {
                   // Custom header with app's color scheme
                   Container(
                     decoration: const BoxDecoration(
-                      color: Color.fromARGB(255, 255, 193, 7), // Warning yellow
+                      color: Color.fromARGB(255, 255, 193, 7),
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(12),
                         topRight: Radius.circular(12),
@@ -498,8 +498,8 @@ class EmerConListState extends State<EmerConList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 225, 190), // Override AppBar background color
-        foregroundColor: Colors.black, // Override AppBar icon/text color
+        backgroundColor: const Color.fromARGB(255, 255, 225, 190), 
+        foregroundColor: Colors.black, 
         centerTitle: true,
         title: const Text(
           'SafeGo',
@@ -576,7 +576,7 @@ class EmerConListState extends State<EmerConList> {
           
           return Column(
             children: [
-              // Header
+              // Header part
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -661,7 +661,7 @@ class EmerConListState extends State<EmerConList> {
           backgroundColor: const Color.fromARGB(255, 255, 225, 190),
           selectedItemColor: Colors.black,
           unselectedItemColor: Colors.grey,
-          currentIndex: 1, // Highlight the Profile icon
+          currentIndex: 1,
           onTap: (index) {
             if (index == 0) {
               Navigator.pushReplacement(
@@ -739,8 +739,8 @@ class _CustomSOSButtonLocation extends FloatingActionButtonLocation {
     
     // Position the button to float on top of the bottom navigation bar
     final double fabY = scaffoldGeometry.scaffoldSize.height - 
-                        56.0 - // Standard bottom navigation bar height
-                        (scaffoldGeometry.floatingActionButtonSize.height / 2); // Half the button height to center it on nav bar
+                        56.0 - 
+                        (scaffoldGeometry.floatingActionButtonSize.height / 2); 
     
     return Offset(fabX, fabY);
   }
@@ -1024,7 +1024,7 @@ class _EmergencyContactAuthDialogState extends State<_EmergencyContactAuthDialog
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Manual authentication button (as fallback)
+                  // Manual authentication button 
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(

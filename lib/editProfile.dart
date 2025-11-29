@@ -61,7 +61,7 @@ class EditProfileState extends State<EditProfile> {
         if (currentUser.displayName != null && currentUser.displayName!.isNotEmpty) {
           _nameController.text = currentUser.displayName!;
         } else {
-          // Extract name from email as fallback
+        // Extract name from email as fallback
           _nameController.text = currentUser.email?.split('@')[0] ?? '';
         }
         
@@ -116,7 +116,7 @@ class EditProfileState extends State<EditProfile> {
     super.dispose();
   }
 
-  // Method to show image picker dialog
+  // Show image picker dialog
   void _showImagePickerDialog() {
     showDialog(
       context: context,
@@ -158,7 +158,7 @@ class EditProfileState extends State<EditProfile> {
     );
   }
 
-  // Method to pick image from camera or gallery
+  // Pick image from camera or gallery
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -180,7 +180,7 @@ class EditProfileState extends State<EditProfile> {
     }
   }
 
-  // Method to remove/delete the profile picture
+  // Remove/delete the profile picture
   Future<void> _removeProfilePicture() async {
     // Clear local selected image
     setState(() {
@@ -234,10 +234,7 @@ class EditProfileState extends State<EditProfile> {
     }
   }
   
-
-
-
-  // Method to save profile changes
+  // Save profile changes
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -312,7 +309,7 @@ class EditProfileState extends State<EditProfile> {
           return;
         }
         
-        // Re-authenticate before email change
+        // Authenticate again before email change
         final credential = EmailAuthProvider.credential(
           email: currentUser.email!,
           password: _currentPasswordController.text,
@@ -453,8 +450,8 @@ class EditProfileState extends State<EditProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 225, 190), // Override AppBar background color
-        foregroundColor: Colors.black, // Override AppBar icon/text color
+        backgroundColor: const Color.fromARGB(255, 255, 225, 190),
+        foregroundColor: Colors.black,
         centerTitle: true,
         title: const Text(
           'SafeGo',
@@ -597,7 +594,7 @@ class EditProfileState extends State<EditProfile> {
             // Profile Information Fields
             Column(
               children: [
-                // Name Field
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -947,7 +944,7 @@ class EditProfileState extends State<EditProfile> {
           backgroundColor: const Color.fromARGB(255, 255, 225, 190),
           selectedItemColor: Colors.black,
           unselectedItemColor: Colors.grey,
-          currentIndex: 1, // Profile tab is selected
+          currentIndex: 1,
           onTap: (index) {
             if (index == 0) {
               Navigator.pushReplacement(
@@ -1009,8 +1006,8 @@ class _CustomSOSButtonLocation extends FloatingActionButtonLocation {
     
     // Position the button to float on top of the bottom navigation bar
     final double fabY = scaffoldGeometry.scaffoldSize.height - 
-                        56.0 - // Standard bottom navigation bar height
-                        (scaffoldGeometry.floatingActionButtonSize.height / 2); // Half the button height to center it on nav bar
+                        56.0 -
+                        (scaffoldGeometry.floatingActionButtonSize.height / 2); 
     
     return Offset(fabX, fabY);
   }

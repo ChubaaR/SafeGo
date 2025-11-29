@@ -263,7 +263,7 @@ class EmergencyContactSignInState extends State<EmergencyContactSignIn> {
     );
   }
 
-  // Simple sign-in method without Firestore operations to avoid PigeonUserDetails errors
+  // Simple sign-in method without Firestore operations
   void _simpleSignIn() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -279,7 +279,7 @@ class EmergencyContactSignInState extends State<EmergencyContactSignIn> {
         
         setState(() => _isLoading = false);
         
-        // Upon success, navigate to Emergency Contacts page
+        // If successfully authorised navigate to Emergency Contacts page
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const EmergencyHome.HomePage()),

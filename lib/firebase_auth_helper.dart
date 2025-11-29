@@ -22,7 +22,7 @@ class FirebaseAuthHelper {
     } on TypeError catch (e) {
       print('Type error during sign up, attempting recovery: $e');
       
-      // Wait a bit and retry
+      // Wait and retry
       await Future.delayed(const Duration(seconds: 1));
       
       try {
@@ -58,7 +58,7 @@ class FirebaseAuthHelper {
     } on TypeError catch (e) {
       print('Type error during sign in, attempting recovery: $e');
       
-      // Wait a bit and retry
+      // Wait and retry
       await Future.delayed(const Duration(seconds: 1));
       
       try {

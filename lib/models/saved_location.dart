@@ -6,7 +6,7 @@ class SavedLocation {
   final String address;
   final double latitude;
   final double longitude;
-  final String type; // 'home', 'office', 'other'
+  final String type; // 'home', 'work'
   final DateTime createdAt;
   final bool isOsrmValidated;
 

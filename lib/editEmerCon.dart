@@ -6,7 +6,6 @@ import 'dart:io';
 import 'package:safego/sos.dart';
 import 'package:safego/models/emergency_contact.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-// notification_service import removed during revert
 import 'package:firebase_auth/firebase_auth.dart';
 
 
@@ -32,7 +31,7 @@ class EmerContState extends State<EmerCont> {
   bool _notifyWhenSafelyArrived = false;
   bool _shareLiveLocationDuringSOS = false;
 
-  // Method to show image picker dialog
+  // Show image picker dialog
   void _showImagePickerDialog() {
     showDialog(
       context: context,
@@ -74,7 +73,7 @@ class EmerContState extends State<EmerCont> {
     );
   }
 
-  // Method to pick image from camera or gallery
+  // Pick image from camera or gallery
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -96,14 +95,14 @@ class EmerContState extends State<EmerCont> {
     }
   }
 
-  // Method to remove the selected image
+  // Remove the selected image
   void _removeImage() {
     setState(() {
       _profileImage = null;
     });
   }
 
-  // Method to save contact and navigate back
+  // Save contact and navigate back
   Future<void> _saveContact() async {
     // Validate form
     if (_nameController.text.trim().isEmpty) {
@@ -136,7 +135,7 @@ class EmerContState extends State<EmerCont> {
       return;
     }
 
-    // Basic email validation (optional but helpful)
+    // Basic email validation 
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -536,6 +535,7 @@ class EmerContState extends State<EmerCont> {
                 ),
               ],
             ),
+
             // Toggle 3: Share Live Location During SOS Alert
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -668,13 +668,13 @@ class EmerContState extends State<EmerCont> {
 class _CustomSOSButtonLocation extends FloatingActionButtonLocation {
   @override
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    // Get the center x position
+    // Center the button horizontally
     final double fabX = (scaffoldGeometry.scaffoldSize.width - scaffoldGeometry.floatingActionButtonSize.width) / 2;
     
     // Position the button to float on top of the bottom navigation bar
     final double fabY = scaffoldGeometry.scaffoldSize.height - 
-                        56.0 - // Standard bottom navigation bar height
-                        (scaffoldGeometry.floatingActionButtonSize.height / 2); // Half the button height to center it on nav bar
+                        56.0 - 
+                        (scaffoldGeometry.floatingActionButtonSize.height / 2); 
     
     return Offset(fabX, fabY);
   }
@@ -708,7 +708,7 @@ class EditEmerConState extends State<EditEmerCon> {
   @override
   void initState() {
     super.initState();
-    // Pre-populate form with existing contact data
+    // Filled form with existing contact data
     _nameController.text = widget.contact.name;
     _phoneController.text = widget.contact.phoneNumber;
     _relationshipController.text = widget.contact.relationship;
@@ -719,7 +719,7 @@ class EditEmerConState extends State<EditEmerCon> {
     _shareLiveLocationDuringSOS = widget.contact.shareLiveLocationDuringSOS;
   }
 
-  // Method to show image picker dialog
+  // Show image picker dialog
   void _showImagePickerDialog() {
     showDialog(
       context: context,
@@ -761,7 +761,7 @@ class EditEmerConState extends State<EditEmerCon> {
     );
   }
 
-  // Method to pick image from camera or gallery
+  // Pick image from camera or gallery
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -783,14 +783,14 @@ class EditEmerConState extends State<EditEmerCon> {
     }
   }
 
-  // Method to remove the selected image
+  // Remove the selected image
   void _removeImage() {
     setState(() {
       _profileImage = null;
     });
   }
 
-  // Method to save contact and navigate back
+  // Save contact and navigate back
   Future<void> _saveContact() async {
     // Validate form
     if (_nameController.text.trim().isEmpty) {
@@ -893,7 +893,7 @@ class EditEmerConState extends State<EditEmerCon> {
         Navigator.of(context).pop();
       }
 
-      // Show success message
+      // Display success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -911,7 +911,7 @@ class EditEmerConState extends State<EditEmerCon> {
         Navigator.of(context).pop();
       }
       
-      // Show error message
+      // Display error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1225,6 +1225,7 @@ class EditEmerConState extends State<EditEmerCon> {
                 ),
               ],
             ),
+            
             // Toggle 3: Share Live Location During SOS Alert
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

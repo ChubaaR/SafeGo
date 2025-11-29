@@ -1,4 +1,4 @@
-// lib/biometric_login_page.dart
+///Sign In Page///
 import 'package:flutter/material.dart';
 import 'package:safego/sign_up.dart';
 import 'package:safego/homepage.dart';
@@ -179,7 +179,7 @@ class SignInState extends State<SignIn> {
       },
     );
     
-    // Auto dismiss after 3 seconds - but only for success messages
+    // Auto dismiss after 3 seconds, but only for success messages
     if (isSuccess) {
       Future.delayed(const Duration(seconds: 3), () {
         // Check if the current route is still the dialog we want to dismiss

@@ -62,7 +62,7 @@ class AuthService {
         password: password,
       );
       
-      // Verify that the logged-in user matches the biometric setup
+      // Verify that the logged-in user matches with the biometric setup
       if (userCredential.user != null && userCredential.user!.uid != savedUserId) {
         // Clear invalid biometric data
         await clearSavedCredentials();
@@ -86,11 +86,11 @@ class AuthService {
     await prefs.setBool('biometric_enabled', false);
   }
   
-  // Special authentication for emergency access
+  ////////// Special authentication for emergency access ///////////////////
   // This allows access to emergency contacts even without full app login
   Future<bool> authenticateForEmergencyAccess() async {
     try {
-      // Check if device has biometric capability
+      // Check if device has biometric future is available
       bool isAvailable = await _localAuth.isDeviceSupported();
       if (!isAvailable) {
         return false;
@@ -102,13 +102,13 @@ class AuthService {
         return false;
       }
       
-      // Perform biometric authentication with emergency-specific message
+      // Perform biometric authentication with emergency contacts storage
       bool isAuthenticated = await _localAuth.authenticate(
         localizedReason: 'Authenticate to access emergency contacts in case of emergency',
         options: const AuthenticationOptions(
           useErrorDialogs: true,
           stickyAuth: true,
-          biometricOnly: true, // Only biometric, no fallback to PIN
+          biometricOnly: true, // Only biometric, no PIN
         ),
       );
       
@@ -189,13 +189,13 @@ class AuthService {
     }
     
     if (savedUserId != currentUserId) {
-      // Different user - clear old biometric data
+      // If different user, will clear old biometric data
       await clearSavedCredentials();
       print('Cleared biometric data for different user account');
       return false;
     }
     
-    return true; // Same user, biometrics are valid
+    return true; // If same user, the biometrics are valid
   }
   
   // Get biometric setup information

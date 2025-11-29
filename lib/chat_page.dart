@@ -14,17 +14,17 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
-// Custom FloatingActionButtonLocation to position SOS button directly above navigation bar
+// Floating SOS button directly above navigation bar
 class _CustomSOSButtonLocation extends FloatingActionButtonLocation {
   @override
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    // Get the center x position
+    // Center the button horizontally
     final double fabX = (scaffoldGeometry.scaffoldSize.width - scaffoldGeometry.floatingActionButtonSize.width) / 2;
 
     // Position the button to float on top of the bottom navigation bar
     final double fabY = scaffoldGeometry.scaffoldSize.height - 
-                        56.0 - // Standard bottom navigation bar height
-                        (scaffoldGeometry.floatingActionButtonSize.height / 2); // Half the button height to center it on nav bar
+                        56.0 - 
+                        (scaffoldGeometry.floatingActionButtonSize.height / 2);
 
     return Offset(fabX, fabY);
   }
@@ -44,7 +44,7 @@ class _ChatPageState extends State<ChatPage> {
     'Does SafeGo work without an internet connection?',
   ];
 
-  // Canned answers for the FAQs so the app can reply even when Gemini is
+  // Presaved answers for the FAQs so the app can reply even when Gemini is
   // not initialized or offline. Keys are normalized to lowercase.
   final Map<String, String> _faqAnswers = {
     'what is safego?':
@@ -73,7 +73,7 @@ class _ChatPageState extends State<ChatPage> {
   };
 
   // Try fetching an FAQ answer from Firestore by matching the question text.
-  // If Firestore is not available, or no document matches, return null.
+  // If Firestore is not available or no document matches, return null.
   Future<String?> _fetchFaqAnswerFromFirestore(String question) async {
     try {
       final col = FirebaseFirestore.instance.collection('faqs');
@@ -83,7 +83,7 @@ class _ChatPageState extends State<ChatPage> {
         return data['answer'] as String?;
       }
     } catch (_) {
-      // ignore Firestore errors and fall back to local answers
+      // to ignore Firestore errors and fall back to local answers
     }
     return null;
   }
@@ -94,7 +94,7 @@ class _ChatPageState extends State<ChatPage> {
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 255, 225, 190),
         elevation: 8,
-        shadowColor: Colors.black.withOpacity(0.4), // Shadow color
+        shadowColor: Colors.black.withOpacity(0.4), 
         centerTitle: true,
         title: const Text(
           'SafeGo Chat',
@@ -103,7 +103,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
       body: Column(
         children: [
-          // FAQ quick replies area
+          // FAQ quick replies area (design)
           Container(
             width: double.infinity,
             color: Colors.transparent,
@@ -116,7 +116,7 @@ class _ChatPageState extends State<ChatPage> {
                     padding: const EdgeInsets.only(right: 8.0),
                     child: OutlinedButton(
                       onPressed: () async {
-                        // Create a ChatMessage for the selected FAQ and send it
+                        // When FAQ option is tapped, send it as a user message
                         final faqMessage = ChatMessage(
                           user: _currentUser,
                           createdAt: DateTime.now(),
@@ -130,7 +130,7 @@ class _ChatPageState extends State<ChatPage> {
                         // Try Firestore first
                         final normalized = option.trim();
                         String? answer = await _fetchFaqAnswerFromFirestore(normalized);
-                        // Fallback to local canned answers
+                        // Goback to local presaved answers
                         answer ??= _faqAnswers[normalized.toLowerCase()];
 
                         final reply = answer ??
@@ -161,7 +161,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
 
-          // Chat area
+          // Chat area part
           Expanded(
             child: DashChat(
               currentUser: _currentUser,
@@ -209,7 +209,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
       backgroundColor: Colors.white,
 
-      // Bottom navigation bar 
+//////////////////////////// Bottom navigation bar ///////////////////////////////////////////
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           boxShadow: [
@@ -224,7 +224,7 @@ class _ChatPageState extends State<ChatPage> {
           backgroundColor: Color.fromARGB(255, 255, 225, 190),
           selectedItemColor: Colors.black,
           unselectedItemColor: Colors.grey,
-          currentIndex: 0, // Chat/Home tab will be selected by default here
+          currentIndex: 0, 
           onTap: (index) {
             if (index == 0) {
               // Navigate to Home
@@ -283,7 +283,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> getGeminiResponse(ChatMessage m) async {
     setState(() {
-      // Insert user message at the start so newest messages appear at the top
+      // Insert user message at the start so latest messages appear at the top
       _messages.insert(0, m);
     });
 

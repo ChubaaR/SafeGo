@@ -7,28 +7,14 @@ import '../models/emergency_contact.dart';
 import '../notification_service.dart';
 
 /// Service utilities to notify emergency contacts about user events.
-///
-/// This file intentionally keeps notifications delivery lightweight by:
-/// - Writing a small document to each contact's `notifications` subcollection in
-///   Firestore (so server/cloud functions or external systems can deliver SMS/FCM).
-/// - Sending a local device notification using `NotificationService` for quick
-///   visual feedback when appropriate.
-///
-/// Assumptions / notes:
-/// - The app stores emergency contacts under the current user's collection
-///   at: `/users/{uid}/emergency_contacts/{contactId}`.
-/// - A backend/cloud-function watches `notifications` subcollections and sends
-///   the actual push/SMS messages to the contacts. If you don't have a backend,
-///   these Firestore writes can be used as an audit/log or trigger other client
-///   devices to act.
+
 
 class EmergencyContactNotifications {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Notify a contact that they've been added as an emergency contact.
-  ///
-  /// Writes a notification doc under the contact and shows a local notification
-  /// on the device for immediate feedback.
+  
+  /// Writes a notification doc under the contact and shows a local notification on the device for immediate feedback.
   static Future<void> notifyContactAdded({
     required String uid,
     required EmergencyContact contact,
@@ -54,8 +40,7 @@ class EmergencyContactNotifications {
 
       await docRef.set(payload);
 
-      // Ensure notification subsystem is initialized (no direct local
-      // notification shown here to avoid using private members).
+      // Ensure notification subsystem is initialized (no direct local notification shown here to avoid using private members).
       await NotificationService.initialize();
       debugPrint('Wrote contact_added notification for ${contact.id}');
     } catch (e, st) {
@@ -65,11 +50,7 @@ class EmergencyContactNotifications {
   }
 
   /// Start sharing live location to contacts who have allowed live location.
-  ///
-  /// This will write a small live-location document that the contact (or a
-  /// backend) can observe. It does NOT stream GPS continuously from this
-  /// function; instead it writes the provided [position]. For continuous
-  /// updates, call this in a periodic timer or location subscription.
+
   static Future<void> updateLiveLocation({
     required String uid,
     required EmergencyContact contact,
@@ -100,9 +81,7 @@ class EmergencyContactNotifications {
       await locDoc.set(data, SetOptions(merge: true));
 
       // Optionally send a local notification to the device to indicate update
-      // (kept minimal to avoid spam)
-      // We use NotificationService.show with small payload - delegate to existing
-      // service's check-in channel for simplicity.
+
       await NotificationService.initialize();
       debugPrint('Live location update written for ${contact.id}');
     } catch (e, st) {
@@ -112,9 +91,7 @@ class EmergencyContactNotifications {
   }
 
   /// Update live location with journey route information for emergency contacts.
-  ///
-  /// This enhanced version includes the planned route so emergency contacts
-  /// can see both current location and the intended journey path.
+
   static Future<void> updateLiveLocationWithRoute({
     required String uid,
     required EmergencyContact contact,
@@ -161,10 +138,7 @@ class EmergencyContactNotifications {
   }
 
   /// Send an SOS alert to all emergency contacts for the given user.
-  ///
-  /// Resolves the nearest place name using reverse geocoding and writes an
-  /// SOS notification document under each contact. Also triggers the local
-  /// SOS notification UI via `NotificationService.showSOSAlertNotification`.
+
   static Future<void> sendSOSAlert({
     required String uid,
     required List<EmergencyContact> contacts,
@@ -231,8 +205,7 @@ class EmergencyContactNotifications {
     }
   }
 
-  /// Notify emergency contacts that the user has safely arrived to their
-  /// destination. Only notifies contacts that opted in for safe-arrival alerts.
+  /// Notify emergency contacts that the user has safely arrived to their destination.
   static Future<void> notifySafeArrival({
     required String uid,
     required List<EmergencyContact> contacts,

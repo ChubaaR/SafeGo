@@ -80,11 +80,11 @@ class NotificationService {
         await _requestAndroidPermissions();
       }
 
-      // Request permissions for iOS
-      if (Platform.isIOS) {
-        debugPrint('DEBUG: Requesting iOS permissions');
-        await _requestIOSPermissions();
-      }
+      // // Request permissions for iOS
+      // if (Platform.isIOS) {
+      //   debugPrint('DEBUG: Requesting iOS permissions');
+      //   await _requestIOSPermissions();
+      // }
 
       // Create notification channel for Android
       debugPrint('DEBUG: Creating notification channels');
@@ -982,11 +982,8 @@ class NotificationService {
     required DateTime scheduledTime,
     required int checkInNumber,
   }) async {
+    
     try {
-      // SOS notification removed - no longer scheduling local notifications
-
-      // FCM notification removed - no longer sending scheduled SOS alerts
-
       debugPrint('SOS notification scheduled for: $scheduledTime (check-in #$checkInNumber) with ID: $id');
       debugPrint('📤 Immediate FCM notification sent to Device B for scheduled SOS alert');
     } catch (e) {
@@ -2715,8 +2712,7 @@ class NotificationService {
     }
   }
   
-  /// Set up Firestore listeners to automatically detect new FCM notifications
-  /// and display them on Device B when sent from Device A
+  /// Set up Firestore listeners to automatically detect new FCM notifications and display them on Device B when sent from Device A
   static Future<void> _setupFirestoreNotificationListeners() async {
     try {
       // Prevent multiple initializations
@@ -3384,18 +3380,6 @@ ${_getRecommendations()}
   /// Automatically send notification to connected FCM devices (Device B)
   /// This ensures all notifications (except check-ins) reach connected devices
   /// Automatic FCM forwarding system for connected devices
-  /// 
-  /// INCLUDED NOTIFICATIONS (automatically forwarded):
-  /// - ✅ SOS Emergency Alerts
-  /// - ✅ Journey Started/Arrived notifications
-  /// - ✅ Journey Cancellation notifications
-  /// - ✅ Emergency Contact Addition notifications  
-  /// - ✅ Test FCM notifications
-  /// 
-  /// EXCLUDED NOTIFICATIONS (NOT automatically forwarded):
-  /// - ❌ Check-in notifications (regular & missed)
-  /// - ❌ Local-only notifications
-  /// 
   /// Note: Check-in and missed check-in notifications use direct 
   /// emergency contact system instead of automatic forwarding
   static Future<void> _sendToConnectedFCMDevices({

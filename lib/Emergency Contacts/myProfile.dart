@@ -101,7 +101,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
         'isActive': true,
       });
 
-      // Also save in global connections for bidirectional communication
+      // Also save in global connections for bidirectional/ two way communication
       await _firestore.collection('fcm_connections').add({
         'deviceA': _currentUserToken,
         'deviceB': deviceBToken,
@@ -292,7 +292,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
           'priority': 'normal',
           'isEmergency': false,
           'notificationType': 'journey_notification',
-          // Customized notification content
+          /////notififcation display data
           'title': '🚗 Journey Started (Device B Test)',
           'body': '${_currentUserName ?? 'Device B User'} started journey to $destination at $currentTime.\n📍 Tap to view live location and track progress',
           'customFormat': true,

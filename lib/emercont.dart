@@ -8,7 +8,6 @@ import 'package:safego/sos.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-// import 'package:safego/firestore_notifications.dart';
 import 'package:safego/models/emergency_contact.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -81,7 +80,7 @@ class EmerContState extends State<EmerCont> {
     );
   }
 
-  // Method to pick image from camera or gallery
+  // Pick image from camera or gallery
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -103,14 +102,14 @@ class EmerContState extends State<EmerCont> {
     }
   }
 
-  // Method to remove the selected image
+  // Remove the selected image
   void _removeImage() {
     setState(() {
       _profileImage = null;
     });
   }
 
-  // Method to save contact and navigate back
+  // Save contact and navigate back
   Future<void> _saveContact() async {
     // Validate form
     if (_nameController.text.trim().isEmpty) {
@@ -142,8 +141,6 @@ class EmerContState extends State<EmerCont> {
       );
       return;
     }
-
-
 
     try {
       // Show loading indicator
@@ -202,7 +199,7 @@ class EmerContState extends State<EmerCont> {
       // Save to Firestore with emergency contact user ID for FCM
       final contactData = emergencyContact.toFirestore();
       if (emergencyContactUserId != null) {
-        contactData['emergencyContactId'] = emergencyContactUserId; // Add FCM targeting
+        contactData['emergencyContactId'] = emergencyContactUserId; // Add FCM to target
       }
       
       await FirebaseFirestore.instance
@@ -228,7 +225,6 @@ class EmerContState extends State<EmerCont> {
           try {
             await _showContactAddedSystemNotification(_nameController.text.trim());
           } catch (e) {
-            // Non-fatal - continue with UI feedback
             debugPrint('Failed to show system notification: $e');
           }
 
@@ -241,7 +237,6 @@ class EmerContState extends State<EmerCont> {
             debugPrint('FCM notification sent to newly added emergency contact');
           } catch (e) {
             debugPrint('Failed to send FCM notification to emergency contact: $e');
-            // Non-fatal - continue with UI feedback
           }
 
           // Send FCM notification to connected Device B
@@ -260,7 +255,6 @@ class EmerContState extends State<EmerCont> {
             debugPrint('📤 FCM notification sent to Device B - emergency contact added');
           } catch (e) {
             debugPrint('Failed to send FCM notification to Device B: $e');
-            // Non-fatal - continue with UI feedback
           }
 
           // Show immediate success snackbar
@@ -356,8 +350,8 @@ class EmerContState extends State<EmerCont> {
                           ),
                         ),
                         onPressed: () {
-                          Navigator.of(context).pop(); // Close dialog
-                          Navigator.pop(context, true); // Navigate back to emergency contact list
+                          Navigator.of(context).pop(); 
+                          Navigator.pop(context, true); 
                         },
                         child: const Text(
                           'OK',
@@ -402,7 +396,6 @@ class EmerContState extends State<EmerCont> {
             await notifRef.add(notifData);
 
             // Also write to a top-level notifications collection so all devices
-            // (and any backends) can more easily query notifications for a user.
             await FirebaseFirestore.instance.collection('notifications').add(notifData);
           } catch (e) {
             // Don't block the happy path if notification persistence fails; log for debugging
@@ -412,7 +405,6 @@ class EmerContState extends State<EmerCont> {
 
         }
     } catch (e) {
-      // Close loading dialog if still open
       if (mounted) {
         Navigator.of(context).pop();
       }
@@ -493,8 +485,8 @@ class EmerContState extends State<EmerCont> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 225, 190), // Override AppBar background color
-        foregroundColor: Colors.black, // Override AppBar icon/text color
+        backgroundColor: const Color.fromARGB(255, 255, 225, 190), 
+        foregroundColor: Colors.black, 
         centerTitle: true,
         title: const Text(
           'SafeGo',
@@ -887,8 +879,7 @@ class EmerContState extends State<EmerCont> {
     super.initState();
   }
 
-  /// Ensure a `users/{uid}` Firestore document exists with the user's email.
-  /// This allows other apps (like emersg) to resolve an email to a UID.
+  /// Ensure that a users/{uid} document exists for the current user
   Future<void> _ensureUserDoc(User user) async {
     try {
       final ref = FirebaseFirestore.instance.collection('users').doc(user.uid);
@@ -900,8 +891,6 @@ class EmerContState extends State<EmerCont> {
         });
       }
     } catch (e) {
-      // non-fatal; log for debugging
-      // ignore: avoid_print
       print('ensureUserDoc failed: $e');
     }
   }
@@ -944,9 +933,7 @@ class EmerContState extends State<EmerCont> {
         await plain2.writeAsString(jsonStr, flush: true);
       }
 
-      // If we're running on a desktop (developer machine), try to launch
-      // the Node notifier script so the external sender sends a push
-      // notification. This only works when Node is installed and on PATH.
+      // the Node notifier script so the external sender sends a push notification. This only works when Node is installed and on PATH.
       try {
         final script = r'C:\Users\chuba\Desktop\safego\safego-notifier\sendNotification.js';
         if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -958,11 +945,9 @@ class EmerContState extends State<EmerCont> {
           });
         }
       } catch (e) {
-        // Non-fatal; record for debugging
         debugPrint('Error launching node notifier: $e');
       }
     } catch (e) {
-      // Non-fatal; log for debugging
       debugPrint('Failed to write contact notification file: $e');
     }
   }
@@ -997,7 +982,7 @@ class EmerContState extends State<EmerCont> {
       );
 
       await notification.show(
-        DateTime.now().millisecondsSinceEpoch ~/ 1000, // Unique ID
+        DateTime.now().millisecondsSinceEpoch ~/ 1000, 
         'Emergency Contact Added ✅',
        '${_nameController.text.trim()} has been successfully added as an emergency contact.',
         platformChannelSpecifics,
@@ -1025,8 +1010,8 @@ class _CustomSOSButtonLocation extends FloatingActionButtonLocation {
     
     // Position the button to float on top of the bottom navigation bar
     final double fabY = scaffoldGeometry.scaffoldSize.height - 
-                        56.0 - // Standard bottom navigation bar height
-                        (scaffoldGeometry.floatingActionButtonSize.height / 2); // Half the button height to center it on nav bar
+                        56.0 - 
+                        (scaffoldGeometry.floatingActionButtonSize.height / 2);
     
     return Offset(fabX, fabY);
   }

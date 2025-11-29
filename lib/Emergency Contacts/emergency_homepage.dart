@@ -16,8 +16,8 @@ import '../notification_service.dart';
 import 'emergency_contact_sign_in.dart';
 import 'myProfile.dart';
 
-// Lightweight local stubs to avoid adding external deps while keeping visual parity
-// using ll.LatLng from latlong2 package
+
+
 
 // Minimal stubs for services/models that exist in safego but not in emersg.
 class SavedLocation {
@@ -129,7 +129,7 @@ class HomePageState extends State<HomePage> {
     _lastContactAddedName = null;
     _lastJourneyStartedInfo = null;
     // Also attempt to load any existing notifications that may have been
-    // written before this app started.
+
     _loadContactNotificationIfAvailable();
     _loadJourneyStartedNotificationIfAvailable();
     
@@ -358,15 +358,14 @@ class HomePageState extends State<HomePage> {
         debugPrint('Geocoding failed with status: ${resp.statusCode}');
       }
     } catch (e) {
-      // ignore and keep coordinate fallback
+      // ignore and keep coordinate go back
     }
 
     await _showLocationSaveDialog(coordinates: point, address: address);
   }
 
   /// Attempts to read a JSON file exported by the safego app at
-  /// C:\Users\chuba\Desktop\safego\safego\.current_location.json
-  /// Expected content: { "lat": <number>, "lon": <number>, "address": "..." }
+  /// 
   Future<void> _loadSafegoCurrentLocationIfAvailable() async {
     try {
       // Try primary safego workspace path first
@@ -996,11 +995,11 @@ class HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      // Floating action buttons - multiple buttons above live location
+/////////////////// Floating action buttons (multiple buttons above live location)//////////////////////////////
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Journey Start button (top)
+    ///////// Journey Start button (top)//////////
           Container(
             width: 60,
             height: 60,
@@ -1088,8 +1087,8 @@ class HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          const SizedBox(height: 6), // Space between buttons
-          // Emergency Contact Added button (second)
+          const SizedBox(height: 6), 
+   /////////// Emergency Contact Added button (second)///////////
           Container(
             width: 58,
             height: 58,
@@ -1204,8 +1203,8 @@ class HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          const SizedBox(height: 8), // Space between buttons
-          // Safe Arrival button (third)
+          const SizedBox(height: 8), 
+    ////////// Safe Arrival button (third)/////////
           Container(
             width: 62,
             height: 62,
@@ -1281,8 +1280,8 @@ class HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          const SizedBox(height: 10), // Space between buttons
-          // Missed Check-in SOS button (third)
+          const SizedBox(height: 10), 
+    ////////// Missed Check-in SOS button (third)//////////
           Container(
             width: 65,
             height: 65,
@@ -1354,8 +1353,8 @@ class HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          const SizedBox(height: 12), // Space between buttons
-          // Emergency SOS button (middle)
+          const SizedBox(height: 12), 
+    /////////// Emergency SOS button (middle)///////////
           Container(
             width: 70,
             height: 70,
@@ -1426,8 +1425,8 @@ class HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          const SizedBox(height: 16), // Space between buttons
-          // Main floating action button for live location
+          const SizedBox(height: 16), 
+      //////////// Main floating action button for live location///////////
           Container(
             width: 80,
             height: 80,
@@ -1483,6 +1482,9 @@ class HomePageState extends State<HomePage> {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+///////////////////// End of floating action buttons //////////////////////////////
+      
+      
       // SOS button removed per user request
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,

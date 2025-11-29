@@ -27,12 +27,9 @@ void main() async {
   
   // Initialize FCM token sharing for emergency contacts
   await NotificationService.initializeFCMTokenSharing();
-  // Seed FAQs into Firestore if not present so the app can fetch canned answers
-  // for FAQ chips. If Firestore isn't available, this will fail gracefully.
+  // Sends FAQs into Firestore (so that if the FAQ not present so the app can fetch these answers)
   try {
-    // Import `cloud_firestore` at top if not already present.
-    // Using a runtime import avoids breaking environments where Firestore
-    // isn't configured for testing.
+    // Import `cloud_firestore` at top if not already present. (Using a runtime import avoids breaking environments where Firestore)
     final faqsCol = FirebaseFirestore.instance.collection('faqs');
     final snapshot = await faqsCol.limit(1).get();
     if (snapshot.docs.isEmpty) {
@@ -88,7 +85,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  // navigator key is in app_nav_key.dart
+  // Global notification listener subscription
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _globalNotifSub;
   final Set<String> _globalSeenNotifIds = {};
   
@@ -107,7 +104,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   void _attachGlobalNotificationsListener() {
-    // Wait for Firebase Auth to initialize
+    // Listen for auth state changes to attach/detach notification listener
     FirebaseAuth.instance.authStateChanges().listen((user) {
       _globalNotifSub?.cancel();
       _globalSeenNotifIds.clear();
@@ -148,18 +145,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             // Mark as seen
             _globalSeenNotifIds.add(id);
             
-            // On first snapshot, skip all existing notifications
-            // All new notifications after this will be shown
+            // On first snapshot, skip all existing notifications (All new notifications after this will be shown)
             if (isFirstSnapshot) {
               print('[GLOBAL_NOTIF] First snapshot - marking as seen but not showing: $id');
               continue;
             }
             
-            // This is a new notification that came after listener started
+            // This is a new notification that comes after listener started (Device B)
             print('[GLOBAL_NOTIF] New notification detected - showing dialog for: $name');
             
             if (type == 'contact_added') {
-              // Show global dialog via app navigator key
+              // Show dialog for contact added
               final ctx = appNavigatorKey.currentContext;
               if (ctx != null) {
                 showDialog(
@@ -250,7 +246,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           }
         }
         
-        // After processing first snapshot, mark flag as false
+        // After processing first snapshot, mark the flag as false
         if (isFirstSnapshot) {
           isFirstSnapshot = false;
           print('[GLOBAL_NOTIF] First snapshot processed - now listening for new notifications');
@@ -266,7 +262,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
     
     if (state == AppLifecycleState.resumed) {
-      // App became active - check for missed check-ins
+      // App has resumed (check for any pending notifications)
       NotificationService.checkOnAppResume();
     }
   }
@@ -278,15 +274,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       navigatorKey: appNavigatorKey,
       home: SplashScreen(
         image: const AssetImage('assets/Homepage.png'),
-        duration: const Duration(seconds: 5), // show splash for 5 secs
-        nextScreen: const SignIn(), // Go directly to sign-in page
+        duration: const Duration(seconds: 5), // show splash screen for 5 secs
+        nextScreen: const SignIn(), // Go directly to sign-in page after splash
       ),
     );
   }
-
-  // No global overlay methods remain; notifications are handled in emercont.dart.
-
-  // No global overlay methods remain; notifications are handled by emergencypage.
+/////////////// end of _MyAppState /////////////
 }
 
 

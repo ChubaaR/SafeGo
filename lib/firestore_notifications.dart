@@ -1,15 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Helper to write a notification targeted at a specific user UID.
-///
-/// Usage:
-/// await sendNotificationToUser(
-///   targetUid: 'JPR23GihpWOGoPFAcsbNPWhM2Wy1',
-///   title: 'Subject',
-///   body: 'Message body',
-///   senderUserId: FirebaseAuth.instance.currentUser?.uid,
-/// );
-
 Future<void> sendNotificationToUser({
   required String targetUid,
   required String title,

@@ -669,7 +669,7 @@ class HomePageState extends State<HomePage> {
           destination: destination,
           currentLocation: currentLocation,
           currentAddress: currentAddress,
-          destinationCoords: selectedDestinationCoords, // Pass selected coordinates (can be null)
+          destinationCoords: selectedDestinationCoords, // Pass selected coordinates 
           transportMode: selectedTransportMode, // Pass selected transport mode
         ),
       ),
@@ -694,7 +694,7 @@ class HomePageState extends State<HomePage> {
       // Enhanced query for Malaysian locations
       String searchQuery = query;
       
-      // If query doesn't contain "Malaysia", add it to prioritize Malaysian results
+      // If query doesn't contain "Malaysia", add it to prioritize Malaysian location results
       if (!query.toLowerCase().contains('malaysia') && 
           !query.toLowerCase().contains('kuala lumpur') && 
           !query.toLowerCase().contains('selangor') && 
@@ -1248,13 +1248,13 @@ class HomePageState extends State<HomePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 100, // Increased width for a longer button
+            width: 100, 
             height: 48,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isSelected 
-                ? const Color.fromARGB(255, 76, 175, 80) // Green when selected
-                : const Color.fromARGB(255, 255, 241, 217), // Default cream color
+                ? const Color.fromARGB(255, 76, 175, 80) 
+                : const Color.fromARGB(255, 255, 241, 217), 
               borderRadius: BorderRadius.circular(12),
               border: isSelected 
                 ? Border.all(color: const Color.fromARGB(255, 56, 142, 60), width: 2)
@@ -1263,7 +1263,7 @@ class HomePageState extends State<HomePage> {
                 BoxShadow(
                   color: Colors.black26,
                   blurRadius: 8,
-                  offset: Offset(0, 4), // Shadow below the button
+                  offset: Offset(0, 4), 
                 ),
               ],
             ),
@@ -1275,7 +1275,7 @@ class HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 4),
           SizedBox(
-            width: 100, // Match button width for longer label
+            width: 100, 
             child: Text(
               label,
               textAlign: TextAlign.center,
@@ -1298,8 +1298,8 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.green,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 225, 190), // Override AppBar background color
-        foregroundColor: Colors.black, // Override AppBar icon/text color
+        backgroundColor: const Color.fromARGB(255, 255, 225, 190), 
+        foregroundColor: Colors.black, 
         centerTitle: true,
         title: FutureBuilder<User?>(
           future: Future.value(FirebaseAuth.instance.currentUser),
@@ -1337,10 +1337,10 @@ class HomePageState extends State<HomePage> {
           ],
         ),
         child: BottomNavigationBar(
-          backgroundColor: const Color.fromARGB(255, 255, 225, 190), // Override BottomNavigationBar background color
-          selectedItemColor: Colors.black, // Override selected item color
-          unselectedItemColor: Colors.grey, // Override unselected item color
-          currentIndex: 0, // Home tab is selected
+          backgroundColor: const Color.fromARGB(255, 255, 225, 190),
+          selectedItemColor: Colors.black, 
+          unselectedItemColor: Colors.grey,
+          currentIndex: 0, 
           onTap: (index) {
             if (index == 0) {
               Navigator.pushReplacement(
@@ -1376,7 +1376,7 @@ class HomePageState extends State<HomePage> {
             EmergencyAlert.show(context);
           },
           backgroundColor: Colors.white,
-          heroTag: "sosButton", // Unique hero tag
+          heroTag: "sosButton", 
           shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(40),
         side: const BorderSide(color: Colors.red, width: 5),
@@ -1400,7 +1400,7 @@ class HomePageState extends State<HomePage> {
 ///////////Main Body Layer that divides the top and bottom tabs////////////
       body: Stack(
         children: <Widget>[
-          // Main content (live map) - full screen
+          // Main content (live map) will show on full screen
           FlutterMap(
             mapController: mapController,
             options: MapOptions(

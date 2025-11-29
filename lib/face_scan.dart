@@ -24,7 +24,7 @@ class FaceScan extends StatefulWidget {
   final LatLng? currentLocation;
   final String currentAddress;
   final LatLng? destinationCoords; 
-  final String transportMode; // Add transport mode parameter
+  final String transportMode; 
 
   const FaceScan({
     super.key,
@@ -59,7 +59,7 @@ class FaceScanState extends State<FaceScan> {
   void _enablebiometrics() async {
     bool success = await _authService.authenticateWithBiometrics();
     if (success) {
-      // Exporting location to other local apps (emersg) has been removed for privacy.
+
 
       // Send an in-app/local notification announcing journey start
       try {
@@ -223,13 +223,13 @@ class FaceScanState extends State<FaceScan> {
             'type': 'journey_started',
             'fromUserId': user.uid,
             'fromUserName': userName,
-            'targetToken': deviceBToken, // FCM token-based targeting
+            'targetToken': deviceBToken, 
             'title': '🚗 Journey Started',
             'userName': userName,
-            'destination': widget.destination, // Use widget.destination to ensure it's set
+            'destination': widget.destination, 
             'startTime': startTime,
             'fromLocation': currentLocation,
-            'displayFormat': 'emergency_page', // This will trigger Device B listeners
+            'displayFormat': 'emergency_page', 
             'body': '$userName started journey to ${widget.destination} at $startTime. Tap to view live location and track progress',
             'timestamp': FieldValue.serverTimestamp(),
             'read': false,
@@ -324,7 +324,7 @@ class FaceScanState extends State<FaceScan> {
     }
   }
 
-// (Export helper removed)
+
 
   // Rate limiting for Nominatim API
   static DateTime? _lastNominatimRequest;
@@ -386,7 +386,7 @@ class FaceScanState extends State<FaceScan> {
     return null;
   }
 
-  // Method to show route
+  // Show route
   Future<void> _showRoute() async {
     if (currentLocation == null || destinationLocation == null) {
       if (mounted) {
@@ -439,7 +439,7 @@ class FaceScanState extends State<FaceScan> {
         profile = 'driving'; // Use driving profile but adjust calculations for walking
         break;
       case 'transit':
-        // OSRM doesn't have transit, fallback to driving but we'll adjust time later
+        // OSRM doesn't have transit, goback to driving but we'll adjust time later
         profile = 'driving';
         break;
       default:
@@ -753,8 +753,8 @@ class FaceScanState extends State<FaceScan> {
     return Scaffold(
       backgroundColor: Colors.green,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 225, 190), // Override AppBar background color
-        foregroundColor: Colors.black, // Override AppBar icon/text color
+        backgroundColor: const Color.fromARGB(255, 255, 225, 190), 
+        foregroundColor: Colors.black, 
         centerTitle: true,
         title: Text(
           'SafeGo',
@@ -799,7 +799,7 @@ class FaceScanState extends State<FaceScan> {
           backgroundColor: const Color.fromARGB(255, 255, 225, 190),
           selectedItemColor: Colors.black,
           unselectedItemColor: Colors.grey,
-          currentIndex: 0, // Home tab is selected
+          currentIndex: 0, 
           onTap: (index) {
             if (index == 0) {
               Navigator.pushReplacement(
@@ -828,7 +828,7 @@ class FaceScanState extends State<FaceScan> {
       
 ///////////// Floating SOS Button positioned closer to BottomNavigationBar ///////////
       floatingActionButton: SizedBox(
-        // Increased size for bigger button
+
         width: 80, 
         height: 80, 
         child: FloatingActionButton(
@@ -945,12 +945,12 @@ class FaceScanState extends State<FaceScan> {
                   child: ElevatedButton(
                     onPressed: _enablebiometrics,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green, // Button color
+                      backgroundColor: Colors.green, 
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8), // Rounded corners
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-                      minimumSize: const Size(double.infinity, 48), // Full width button
+                      minimumSize: const Size(double.infinity, 48), 
                     ),
                     child: const Text(
                       'START',
@@ -1085,7 +1085,7 @@ class FaceScanState extends State<FaceScan> {
 //////////END of Second Layer that divides the top and bottom tabs//////////////
 
 
-          /////// Bottom sheet-like panel above the bottom navigation bar, that shows the input locations///////
+/////////// Bottom sheet-like panel above the bottom navigation bar, that shows the input locations///////
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -1169,7 +1169,6 @@ class FaceScanState extends State<FaceScan> {
             ),
           ),
 
-
           ],
         ),
       );
@@ -1177,7 +1176,7 @@ class FaceScanState extends State<FaceScan> {
   }
 
   // Debug method to show FCM test option after journey starts
-  // Send direct FCM notification to a specific device token
+  // Send direct FCM notification to specific device token
   Future<void> _sendDirectFCMNotification({
     required String token,
     required String title,
@@ -1262,8 +1261,8 @@ class _CustomSOSButtonLocation extends FloatingActionButtonLocation {
     
     // Position the button to float on top of the bottom navigation bar
     final double fabY = scaffoldGeometry.scaffoldSize.height - 
-                        56.0 - // Standard bottom navigation bar height
-                        (scaffoldGeometry.floatingActionButtonSize.height / 2); // Half the button height to center it on nav bar
+                        56.0 - 
+                        (scaffoldGeometry.floatingActionButtonSize.height / 2); 
     
     return Offset(fabX, fabY);
   }

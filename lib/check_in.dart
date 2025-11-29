@@ -11,12 +11,12 @@ import 'notification_service.dart';
 
 class JourneyCheckIn {
   static Timer? _globalTimer;
-  static int _globalSecondsRemaining = 15; // 10 seconds countdown
+  static int _globalSecondsRemaining = 15; // 15 seconds countdown for check-in
   static DateTime? _timerStartTime;
   static bool _isTimerRunning = false;
   static VoidCallback? _onTimerExpired;
   
-  // Start the global timer before showing dialog (called when check-in interval is reached) //int duration = 15 sec countdown
+  // Start the global timer before showing dialog (called when check-in interval is reached) (int duration = 15 sec countdown)
   static void startGlobalTimer({int duration = 15, VoidCallback? onExpired}) {
     if (_isTimerRunning) {
       debugPrint('Global check-in timer already running');
@@ -155,7 +155,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
     switch (state) {
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
-        // App going to background - timer continues running
+        // App runs in background, the timer continues running
         _appInBackground = true;
         _backgroundTimestamp = DateTime.now();
         debugPrint('Check-in dialog: App went to background at $_backgroundTimestamp (${_secondsRemaining}s remaining)');
@@ -182,7 +182,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
           } else if (mounted) {
             // Update UI to reflect current timer state
             setState(() {
-              // Refresh UI with current timer value
+            // Refresh UI with current timer value
             });
           }
         }
@@ -220,7 +220,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
   Future<void> _sendBackgroundSOSNotification() async {
     try {
       // This method is called by backup timer for logging purposes
-      // The actual SOS notification will be sent by _showTimeoutSOS() when appropriate
+      // The actual SOS notification will be sent when appropriate
       debugPrint('Backup timer triggered - SOS would be sent if needed for check-in ${widget.checkInNumber}');
       
       // Send missed check-in notification
@@ -252,7 +252,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
         }
       }
       
-      // Get current location with address conversion (same as SOS button)
+      // Get current location with accurate address (same as SOS button)
       try {
         Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
@@ -262,7 +262,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
         String coordinates = '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
         userLocation = coordinates;
         
-        // Try multiple fast methods to get human-readable address
+        // Try multiple fast methods to get accurate address
         await _getFastReadableAddress(position.latitude, position.longitude).then((address) {
           if (address != null && address.isNotEmpty && address != coordinates) {
             userLocation = address;
@@ -337,7 +337,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
           ),
         );
       } else {
-        // Authentication failed - show retry message
+        // Authentication failed and show retry message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Authentication failed. Please try again.'),
@@ -348,7 +348,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
         // Retry authentication after a delay
         await Future.delayed(const Duration(seconds: 1));
         if (mounted) {
-          _authenticateUser(); // Retry authentication
+          _authenticateUser(); 
         }
       }
     }
@@ -398,9 +398,8 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
     // Send missed check-in notification when SOS timeout occurs
     _sendMissedCheckInNotification();
     
-    // Note: SOS alert notification is already scheduled to appear automatically in background
+
     // We only need to show the dialog here when user opens the app after timeout
-    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -408,7 +407,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
         canPop: false, // Prevent dismissing without biometric verification
         onPopInvokedWithResult: (didPop, result) async {
           if (!didPop) {
-            // User tried to exit - require biometric authentication
+            // User tried to exit with required biometric authentication
             bool isAuthenticated = await _authService.authenticateWithBiometrics();
             if (isAuthenticated && context.mounted) {
               debugPrint('SOS alert cancelled - user authenticated successfully');
@@ -506,7 +505,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
           onPressed: () async {
               bool isAuthenticated = await _authService.authenticateWithBiometrics();
               if (isAuthenticated) {
-                // User confirmed they are safe - close SOS dialog
+                // User confirmed they are safe then close SOS dialog
                 debugPrint('SOS alert cancelled - user confirmed safety, journey continues');
                 
                 // Cancel SOS alert notification
@@ -798,7 +797,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
     );
   }
 
-  // Fast address conversion with timeout and comprehensive address building (identical to notification service)
+  // Fast address conversion with timeout and comprehensive address building (similar to notification service)
   Future<String?> _getFastReadableAddress(double lat, double lon) async {
     try {
       debugPrint('🔍 Fast geocoding for coordinates: $lat, $lon');
@@ -828,7 +827,7 @@ class _JourneyCheckInDialogState extends State<_JourneyCheckInDialog> with Widge
         debugPrint('   Country: ${placemark.country}');
         debugPrint('   IsoCountryCode: ${placemark.isoCountryCode}');
         
-        // Build a readable location string with comprehensive address components (duplicate-safe)
+        // Build a readable location string with comprehensive address components 
         List<String> locationParts = [];
         
         // Add street number and name (avoid duplicates)

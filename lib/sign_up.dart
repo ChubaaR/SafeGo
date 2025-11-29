@@ -1,4 +1,4 @@
-// lib/biometric_login_page.dart
+/// Sign Up Page ///
 import 'package:flutter/material.dart';
 import 'package:safego/sign_in.dart';
 import 'auth_service.dart';
@@ -324,7 +324,7 @@ class SignUpState extends State<SignUp> {
             padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 8),
             children: [
 
-          ////////////////Top Header Text//////////////////////
+/////////////////////// Top Header Text ///////////////////////////
             const Text(
               'Create an account',
               textAlign: TextAlign.left,
@@ -471,7 +471,7 @@ class SignUpState extends State<SignUp> {
                 ),
                 const SizedBox(height: 10),
                 
-                //////////////Mobile TextField//////////////////////
+                ////////////////// Mobile Number TextField //////////////////////
                 Row(
                   children: [
                     const Text(

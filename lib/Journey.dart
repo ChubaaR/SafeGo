@@ -1,4 +1,4 @@
-// lib/Journey.dart
+// Journey page that displays after start journey
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -85,8 +85,8 @@ class Journey extends StatefulWidget {
   final String destination;
   final LatLng? currentLocation;
   final String currentAddress;
-  final LatLng? destinationCoords; // Add destination coordinates parameter
-  final String transportMode; // Add transport mode parameter
+  final LatLng? destinationCoords; 
+  final String transportMode; 
 
   const Journey({
     super.key,
@@ -616,7 +616,7 @@ class JourneyState extends State<Journey> {
     // Cancel any existing timer
     _checkInTimer?.cancel();
     
-    // Check if journey is still active (no time limit check - continue until user ends journey)
+    // Check if journey is still active (no time limit check, it continue until user ends journey)
     if (!_journeyStarted) {
       debugPrint('Journey stopped - not scheduling next check-in');
       return;
@@ -686,10 +686,10 @@ class JourneyState extends State<Journey> {
       
       debugPrint('Check-in #$_checkInCount completed successfully (including SOS cancellations)');
       
-      // Always schedule next check-in - continue until user manually ends journey
+      // Always schedule next check-in and continue until user manually ends journey
       _scheduleNextCheckIn();
     } else {
-      // Check-in failed - but still continue journey with reduced check-in frequency
+      // Check-in failed, but still continue journey with reduced check-in frequency
       debugPrint('Check-in #$_checkInCount failed, but journey continues');
       
       // Show warning but continue the journey
@@ -755,7 +755,7 @@ class JourneyState extends State<Journey> {
         NotificationService.cancelNotification(notificationId);
         
         // CRITICAL FIX: Also cancel the scheduled SOS notification for this check-in
-        final sosNotificationId = notificationId + 100000; // Same offset as used in NotificationService
+        final sosNotificationId = notificationId + 100000; 
         NotificationService.cancelNotification(sosNotificationId);
         debugPrint('Cancelled SOS notification with ID: $sosNotificationId for check-in #$i');
         
@@ -774,7 +774,7 @@ class JourneyState extends State<Journey> {
   void _startBackgroundSOSMonitoring() {
     if (_journeyStartTime == null) return;
     
-    // Start monitoring timer that checks every 30 seconds for missed check-ins//////////////////////////////////////////////
+////////////////// Start monitoring timer that checks every 30 seconds for missed check-ins///////////////////////////
     _backgroundSOSTimer = Timer.periodic(Duration(seconds: 30), (timer) async {
       await _checkForMissedCheckIns();
     });
@@ -1020,7 +1020,7 @@ class JourneyState extends State<Journey> {
         
         _showImSafeDialog();
       } else {
-        // User hasn't reached destination - show distance message and keep journey active
+        // User hasn't reached destination. It shows distance message and keep journey active
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('You are ${(distanceToDestination / 1000).toStringAsFixed(1)}km from destination. Journey continues tracking for your safety.'),
@@ -1030,7 +1030,7 @@ class JourneyState extends State<Journey> {
         );
       }
     } catch (e) {
-      // Error getting location - keep journey active but show warning
+      // Error getting location, keep journey active but show warning
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Unable to get your location. Journey continues tracking for your safety.'),
@@ -1044,6 +1044,22 @@ class JourneyState extends State<Journey> {
   void _showImSafeDialog() {
     // Show biometric authentication first, then the "I'm Safe" confirmation
     _showArrivalAuthenticationDialog();
+  }
+  
+  // Helper method to safely complete journey and navigate home
+  void _completeJourneyAndNavigateHome() {
+    // Complete the journey successfully using the proper termination method
+    setState(() {
+      _isVerifyingArrival = false;
+    });
+    
+    _terminateJourney(); // Use the dedicated termination method
+    
+    // Navigate back to homepage and clear the navigation stack
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const HomePage()),
+      (Route<dynamic> route) => false,
+    );
   }
   
   // Send arrival notification with current time
@@ -1136,10 +1152,10 @@ class JourneyState extends State<Journey> {
   // Method to handle journey exit with biometric verification
   Future<void> _handleJourneyExit() async {
     if (_journeyStarted) {
-      // Journey is active - require biometric verification
+      // Journey is active and require biometric verification
       _showExitVerificationDialog();
     } else {
-      // Journey not started - can exit normally
+      // If Journey not started, user can exit normally
       Navigator.pop(context);
     }
   }
@@ -1236,8 +1252,21 @@ class JourneyState extends State<Journey> {
     
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
+      barrierDismissible: true, // Allow dismissing by sliding/tapping outside
+      builder: (context) => PopScope(
+        canPop: true,
+        onPopInvoked: (didPop) {
+          if (didPop) {
+            // User dismissed the dialog by sliding or back button
+            // Use a post-frame callback to avoid navigation conflicts
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _completeJourneyAndNavigateHome();
+              }
+            });
+          }
+        },
+        child: Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -1309,24 +1338,14 @@ class JourneyState extends State<Journey> {
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
                 onPressed: () {
-                  // Complete the journey successfully using the proper termination method
-                  setState(() {
-                    _isVerifyingArrival = false;
-                  });
-                  
-                  _terminateJourney(); // Use the dedicated termination method
-                  
-                  Navigator.of(context).pop(); // Close the dialog
-                  // Navigate back to homepage and clear the navigation stack
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const HomePage()),
-                    (Route<dynamic> route) => false,
-                  );
+                  Navigator.of(context).pop(); // Close the dialog first
+                  _completeJourneyAndNavigateHome(); // Then complete journey and navigate
                 },
                 child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],
+        ),
         ),
       ),
     );
@@ -1356,7 +1375,7 @@ class JourneyState extends State<Journey> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 70, // Increased width for a longer button
+            width: 70,
             height: 40,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -1376,7 +1395,7 @@ class JourneyState extends State<Journey> {
           ),
           const SizedBox(height: 4),
           SizedBox(
-            width: 50, // Match button width for longer label
+            width: 50, 
           ),
         ],
       ),
@@ -1396,8 +1415,8 @@ class JourneyState extends State<Journey> {
       child: Scaffold(
         backgroundColor: Colors.green,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 225, 190), // Override AppBar background color
-        foregroundColor: Colors.black, // Override AppBar icon/text color
+        backgroundColor: const Color.fromARGB(255, 255, 225, 190), 
+        foregroundColor: Colors.black, 
         centerTitle: true,
         title: Text(
           'SafeGo',
@@ -1439,10 +1458,10 @@ class JourneyState extends State<Journey> {
           ],
         ),
         child: BottomNavigationBar(
-          backgroundColor: const Color.fromARGB(255, 255, 225, 190), // Override BottomNavigationBar background color
-          selectedItemColor: Colors.black, // Override selected item color
-          unselectedItemColor: Colors.grey, // Override unselected item color
-          currentIndex: _bottomNavIndex, // Track selected tab
+          backgroundColor: const Color.fromARGB(255, 255, 225, 190), 
+          selectedItemColor: Colors.black,
+          unselectedItemColor: Colors.grey, 
+          currentIndex: _bottomNavIndex, 
           onTap: (index) {
             setState(() {
               _bottomNavIndex = index;
@@ -1464,7 +1483,7 @@ class JourneyState extends State<Journey> {
                 );
               });
             } else if (index == 2) {
-              // Navigate directly to Emergency Contacts (emer.HomePage) without biometric verification
+              // Navigate directly to Emergency Contacts without biometric verification
               // Leave the journey running so contacts can view live location
               Navigator.push(
                 context,
@@ -1491,7 +1510,6 @@ class JourneyState extends State<Journey> {
       
 ///////////// Floating SOS Button positioned closer to BottomNavigationBar ///////////
       floatingActionButton: SizedBox(
-        // Increased size for bigger button
         width: 80, 
         height: 80, 
         child: FloatingActionButton(
@@ -1499,7 +1517,7 @@ class JourneyState extends State<Journey> {
             EmergencyAlert.show(context);
           },
           backgroundColor: Colors.white,
-          heroTag: "journeySosButton", // Unique hero tag
+          heroTag: "journeySosButton", 
           shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(40),
         side: const BorderSide(color: Colors.red, width: 5),
@@ -1508,7 +1526,7 @@ class JourneyState extends State<Journey> {
         'SOS',
         style: TextStyle(
           color: Colors.black,
-          fontSize: 20, // Slightly larger text for bigger button
+          fontSize: 20, 
           fontWeight: FontWeight.bold,
         ),
           ),
@@ -1525,7 +1543,7 @@ class JourneyState extends State<Journey> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
 
-          // Main content (live map)
+          // Main content part(live map)
           Expanded(
             child: Stack(
               children: [
@@ -1840,7 +1858,7 @@ class JourneyState extends State<Journey> {
                       icon: _getTransportIcon(),
                       iconSize: 20,
                     ),
-                    // Emergency Contacts button removed from sheet — available from bottom navigation
+                    // Emergency Contacts button removed from sheet, available from bottom navigation
                   ],
                   ),
                 ],
@@ -2722,7 +2740,7 @@ class _ExitVerificationDialogState extends State<_ExitVerificationDialog> {
         // Call the success callback to exit journey
         widget.onAuthenticationSuccess();
       } else {
-        // Authentication failed - show retry message
+        // Authentication failed, show retry message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Authentication failed. Please try again.'),
@@ -3052,8 +3070,8 @@ class _CustomSOSButtonLocation extends FloatingActionButtonLocation {
     
     // Position the button to float on top of the bottom navigation bar
     final double fabY = scaffoldGeometry.scaffoldSize.height - 
-                        56.0 - // Standard bottom navigation bar height
-                        (scaffoldGeometry.floatingActionButtonSize.height / 2); // Half the button height to center it on nav bar
+                        56.0 - 
+                        (scaffoldGeometry.floatingActionButtonSize.height / 2); 
     
     return Offset(fabX, fabY);
   }

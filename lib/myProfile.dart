@@ -24,7 +24,7 @@ class MyProfile extends StatefulWidget {
 }
 
 class MyProfileState extends State<MyProfile> {
-  // User data - fetched from Firebase
+  // User data, fetched from Firebase
   String userName = "";
   String userEmail = "";
   String userPhone = "";
@@ -406,8 +406,8 @@ class MyProfileState extends State<MyProfile> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 225, 190), // Override AppBar background color
-        foregroundColor: Colors.black, // Override AppBar icon/text color
+        backgroundColor: const Color.fromARGB(255, 255, 225, 190), 
+        foregroundColor: Colors.black, 
         centerTitle: true,
         title: const Text(
           'My Profile',
@@ -432,7 +432,7 @@ class MyProfileState extends State<MyProfile> {
         ],
       ),
 
-      ///////////////Start BottomNavigationBar//////////////////
+/////////////////////Start BottomNavigationBar/////////////////////////
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           boxShadow: [
@@ -450,7 +450,7 @@ class MyProfileState extends State<MyProfile> {
           currentIndex: 1, // Profile tab is selected
           onTap: (index) {
             if (index == 0) {
-              _navigateToHome(); // Navigate to home
+              _navigateToHome(); 
             }
             // Index 1 is current page (Profile), so no navigation needed
           },
@@ -467,9 +467,8 @@ class MyProfileState extends State<MyProfile> {
         ),
       ),
 
-      ///////////// Floating SOS Button positioned closer to BottomNavigationBar ///////////
+///////////////// Floating SOS Button positioned closer to BottomNavigationBar ///////////////
       floatingActionButton: SizedBox(
-        // Increased size for bigger button
         width: 80,
         height: 80,
         child: FloatingActionButton(
@@ -477,7 +476,7 @@ class MyProfileState extends State<MyProfile> {
             EmergencyAlert.show(context);
           },
           backgroundColor: Colors.white,
-          heroTag: "profileSosButton", // Unique hero tag
+          heroTag: "profileSosButton", 
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(40),
             side: const BorderSide(color: Colors.red, width: 5),
@@ -486,7 +485,7 @@ class MyProfileState extends State<MyProfile> {
             'SOS',
             style: TextStyle(
               color: Colors.black,
-              fontSize: 20, // Slightly larger text for bigger button
+              fontSize: 20, 
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -494,7 +493,7 @@ class MyProfileState extends State<MyProfile> {
       ),
       floatingActionButtonLocation: _CustomSOSButtonLocation(),
 
-      ///////////////End BottomNavigationBar////////////////////////
+//////////////////////////End BottomNavigationBar////////////////////////////////////
 
       // Main body content
       body: Container(
@@ -813,17 +812,6 @@ class MyProfileState extends State<MyProfile> {
                           ),
                         ),
 
-
-
-
-
-
-
-
-
-
-
-
                         const SizedBox(height: 16),
 
                         // FCM Emergency Contact Connection Section
@@ -979,8 +967,8 @@ class _CustomSOSButtonLocation extends FloatingActionButtonLocation {
     
     // Position the button to float on top of the bottom navigation bar
     final double fabY = scaffoldGeometry.scaffoldSize.height - 
-                        56.0 - // Standard bottom navigation bar height
-                        (scaffoldGeometry.floatingActionButtonSize.height / 2); // Half the button height to center it on nav bar
+                        56.0 - 
+                        (scaffoldGeometry.floatingActionButtonSize.height / 2); 
     
     return Offset(fabX, fabY);
   }

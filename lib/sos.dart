@@ -12,7 +12,7 @@ class EmergencyAlert {
   static Future<void> show(BuildContext context) async {
     return showDialog(
       context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
+      barrierDismissible: false, // Avoid tapping outside
       builder: (BuildContext context) {
         return _EmergencyDialog();
       },
@@ -158,7 +158,7 @@ class _EmergencyDialogState extends State<_EmergencyDialog> {
     // Take first 3 parts (usually street, area, city)
     String trimmed = parts.take(3).join(', ');
     
-    // If still too long, truncate and add ellipsis
+    // If still too long, trip it
     if (trimmed.length > 50) {
       trimmed = '${trimmed.substring(0, 47)}...';
     }
@@ -221,7 +221,7 @@ class _EmergencyDialogState extends State<_EmergencyDialog> {
             onPopInvoked: (didPop) {
               if (!didPop) {
                 // For the "I'm Safe" confirmation, we can allow dismissal since the SOS was already cancelled
-                // But we'll just dismiss it normally - no additional biometrics needed for this confirmation
+                // But we'll just dismiss it normally if no additional biometrics needed for this confirmation
                 Navigator.of(context).pop();
               }
             },
@@ -325,14 +325,14 @@ class _EmergencyDialogState extends State<_EmergencyDialog> {
               canPop: false, // Prevent unauthorized exit from SOS alert dialog
               onPopInvoked: (didPop) async {
                 if (!didPop) {
-                  // Handle swipe/back gesture attempts - require biometric verification
+                  // Handle swipe/back gesture attempts requires biometric verification
                   bool isAuthenticated = await _authService.authenticateWithBiometrics();
                   if (isAuthenticated) {
                     // User confirmed they are safe
                     debugPrint('SOS alert cancelled via swipe/back - user confirmed safety');
                     Navigator.of(context).pop();
                   } else {
-                    // Authentication failed - show message and keep dialog open
+                    // Authentication failed, show message and keep dialog open
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Authentication failed. Cannot dismiss SOS alert.'),

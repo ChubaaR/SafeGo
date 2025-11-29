@@ -93,12 +93,12 @@ class _HomePageState extends State<HomePage> {
   
   // Stub: stop live location sharing (implement actual logic as needed)
   void _stopLiveLocationSharing() {
-    // Intentionally left blank — implement platform/location cleanup here
+
   }
   
   // Stub: cancel notifications related to an active journey
   void _cancelAllJourneyNotifications() {
-    // Stop background notification monitoring (critical for preventing lingering SOS notifications)
+
     NotificationService.stopBackgroundMonitoring();
     debugPrint('Emergency contacts page: Stopped background notification monitoring');
   }
@@ -160,9 +160,9 @@ class _HomePageState extends State<HomePage> {
       barrierDismissible: false,
       builder: (context) => _NavigationVerificationDialog(
         onAuthenticationSuccess: () async {
-          Navigator.of(context).pop(); // Close verification dialog
-          await _stopJourneyForNavigation(); // Stop the journey when user navigates
-          navigationCallback(); // Execute the original navigation
+          Navigator.of(context).pop(); 
+          await _stopJourneyForNavigation(); 
+          navigationCallback();
         },
         checkInCount: _checkInCount,
       ),
@@ -178,7 +178,7 @@ class _HomePageState extends State<HomePage> {
       
       _checkInTimer?.cancel();
       _stopLiveLocationSharing();
-    // _exportLocationTimer removed
+
       
       // Cancel all pending notifications for this journey
       _cancelAllJourneyNotifications();
@@ -679,7 +679,7 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
           }
         }
         
-        // Add sub-administrative area (county) if no locality (avoid duplicates)
+        // Add sub-administrative area (country) if no locality (avoid duplicates)
         if (placemark.subAdministrativeArea != null && placemark.subAdministrativeArea!.isNotEmpty) {
           String subAdminInfo = placemark.subAdministrativeArea!.trim();
           if (subAdminInfo.isNotEmpty && !locationParts.contains(subAdminInfo)) {
@@ -694,7 +694,7 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
           }
         }
         
-        // Add administrative area (state/province) (avoid duplicates)
+        // Add administrative area (state) (avoid duplicates)
         if (placemark.administrativeArea != null && placemark.administrativeArea!.isNotEmpty) {
           String adminInfo = placemark.administrativeArea!.trim();
           if (adminInfo.isNotEmpty && !locationParts.contains(adminInfo)) {
@@ -714,7 +714,7 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
         locationParts = locationParts
             .where((part) => part.trim().isNotEmpty)
             .map((part) => part.trim())
-            .toSet()  // Remove duplicates
+            .toSet()  
             .toList();
         
         String readableLocation = locationParts.join(', ');
@@ -728,7 +728,6 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
       return 'Location in Malaysia';
     } catch (e) {
       debugPrint('❌ Live view geocoding error: $e');
-      // Fall back to region-based location if address lookup fails
       return 'Location in Malaysia';
     }
   }
@@ -746,11 +745,11 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
       previousPoint = point;
     }
     
-    return totalDistance / 1000; // Convert to kilometers
+    return totalDistance / 1000; 
   }
 
   double _distanceBetween(double lat1, double lon1, double lat2, double lon2) {
-    const double earthRadius = 6371000; // Earth's radius in meters
+    const double earthRadius = 6371000; 
     final double dLat = _degreesToRadians(lat2 - lat1);
     final double dLon = _degreesToRadians(lon2 - lon1);
     
@@ -781,7 +780,7 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
     final double distanceKm = distanceToDestination / 1000;
     
     // Estimate travel time based on average speeds
-    // Assume different speeds based on distance (walking/driving)
+    // Estimate different speeds based on distance (walking/driving)
     double estimatedMinutes;
     
     if (distanceKm < 2.0) {
@@ -855,7 +854,7 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () {
-                      // Trigger a manual refresh
+                      
                       setState(() {});
                     },
                     icon: const Icon(Icons.refresh),
@@ -1381,9 +1380,7 @@ class _EmerContactLiveViewState extends State<EmerContactLiveView> {
   }
 }
 
-/// Simple singleton notifier that other parts of the app can use to notify
-/// the Emergency Contacts UI about added contacts. It exposes a broadcast
-/// stream and a convenience `addContact` method.
+/// the Emergency Contacts UI about added contacts. 
 class ContactNotifier {
   ContactNotifier._internal();
 
@@ -1413,8 +1410,8 @@ class _CustomSOSButtonLocation extends FloatingActionButtonLocation {
     
     // Position the button to float on top of the bottom navigation bar
     final double fabY = scaffoldGeometry.scaffoldSize.height - 
-                        56.0 - // Standard bottom navigation bar height
-                        (scaffoldGeometry.floatingActionButtonSize.height / 2); // Half the button height to center it on nav bar
+                        56.0 - 
+                        (scaffoldGeometry.floatingActionButtonSize.height / 2); 
     
     return Offset(fabX, fabY);
   }
@@ -1712,7 +1709,7 @@ class _NavigationVerificationDialogState extends State<_NavigationVerificationDi
                               ],
                             ),
                           ),
-                          // Colon separator
+  
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 8),
                             child: Text(

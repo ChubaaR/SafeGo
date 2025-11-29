@@ -186,7 +186,7 @@ class EmergencyContactSignUpState extends State<EmergencyContactSignUp> {
               duration: Duration(seconds: 4),
             ),
           );
-          // Navigate to Emergency Contacts page since account creation may have succeeded
+          // Navigate to Emergency Contacts page if account creation is succeessful
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const EmergencyHome.HomePage()),
@@ -253,7 +253,7 @@ class EmergencyContactSignUpState extends State<EmergencyContactSignUp> {
             padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 8),
             children: [
 
-          ////////////////Top Header Text//////////////////////
+////////////////////////Top Header Text/////////////////////////////
             const Text(
               'Create an Account',
               textAlign: TextAlign.left,
@@ -277,7 +277,7 @@ class EmergencyContactSignUpState extends State<EmergencyContactSignUp> {
 
 
 
-            ///////////////Form TextFields//////////////////////
+  /////////////////////////Form TextFields/////////////////////////////////
             //////////////Name TextField//////////////////////
             Column(
               children: [
@@ -370,7 +370,7 @@ class EmergencyContactSignUpState extends State<EmergencyContactSignUp> {
                 ),
                 const SizedBox(height: 10),
                 
-                //////////////Mobile TextField//////////////////////
+                //////////////Mobile TextField/////////////////
                 Row(
                   children: [
                     const Text(
@@ -419,7 +419,7 @@ class EmergencyContactSignUpState extends State<EmergencyContactSignUp> {
                 ),
                 const SizedBox(height: 10),
 
-              //////////////Password TextField//////////////////////
+              //////////////Password TextField/////////////////
                 Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -468,7 +468,7 @@ class EmergencyContactSignUpState extends State<EmergencyContactSignUp> {
                 ),
                 const SizedBox(height: 10),
 
-              //////////////Confirm Password TextField//////////////////////
+              //////////////Confirm Password TextField//////////////////
                 Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -521,7 +521,7 @@ class EmergencyContactSignUpState extends State<EmergencyContactSignUp> {
             const SizedBox(height: 20),            
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 255, 225, 190), // F9E2BC color
+                backgroundColor: const Color.fromARGB(255, 255, 225, 190), // F9E2BC
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
