@@ -1,6 +1,6 @@
 # SafeGo
 
-A comprehensive Flutter-based safety and emergency tracking application designed to keep users safe during journeys and emergencies.
+SafeGo is a biometric-powered personal safety application designed to keep users safe during journeys and emergencies.
 
 ## Features
 
